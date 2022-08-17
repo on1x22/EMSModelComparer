@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EMSModelComparer", "EMSModelComparer\EMSModelComparer.csproj", "{50B0AB8C-48DA-4E48-9E88-CC52903E959D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EMSModelComparer", "EMSModelComparer\EMSModelComparer.csproj", "{48A066F8-411A-4D0E-B213-B283361B8EAB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{50B0AB8C-48DA-4E48-9E88-CC52903E959D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{50B0AB8C-48DA-4E48-9E88-CC52903E959D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{50B0AB8C-48DA-4E48-9E88-CC52903E959D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{50B0AB8C-48DA-4E48-9E88-CC52903E959D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48A066F8-411A-4D0E-B213-B283361B8EAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48A066F8-411A-4D0E-B213-B283361B8EAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48A066F8-411A-4D0E-B213-B283361B8EAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48A066F8-411A-4D0E-B213-B283361B8EAB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {A2D6CF38-473B-4E87-8F6C-B2574C2902D4}
+		SolutionGuid = {A4A1B38B-5771-4198-8E96-4BBB58954D15}
 	EndGlobalSection
 EndGlobal

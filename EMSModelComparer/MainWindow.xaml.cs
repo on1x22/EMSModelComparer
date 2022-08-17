@@ -1,42 +1,52 @@
-using System;
+п»їusing System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
-using Monitel.Mal;
-using Monitel.DataContext.Tools.ModelExtensions;
-using Monitel.Mal.Context.CIM16;
-using Monitel.Mal.Context.CIM16.Ext.EMS;
-using Monitel.UI.Infrastructure.Services;
-
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
 
 namespace EMSModelComparer
 {
-    internal class Program
+    /// <summary>
+    /// Р›РѕРіРёРєР° РІР·Р°РёРјРѕРґРµР№СЃС‚РІРёСЏ РґР»СЏ MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
     {
-        static void Main(string[] args)
+        public MainWindow()
         {
-			/// v0.1. (21.02.2022) Начальная
+            InitializeComponent();
+
+			/// v0.1. (21.02.2022) РќР°С‡Р°Р»СЊРЅР°СЏ
 			///
-			/// При первоначальном открытии программы в папке "Документы" создается папка "EMS model comparer", а также файлы, необходимые для работы программы.
-			///	Наименование сервера задается в формате: ag-lis-aipim.odusv.so (название можно узнать в Менеджере версий модели по пути Вид\Информация о модели\Сервер).
-			/// Наименование БД задается в формате: ODB_EnergyMain (название можно узнать в Менеджере версий модели по пути Вид\Информация о модели\Имя базы данных).
-			/// При запуске выполнения скрипта информация о сравниваемых моделях записывается в файл EMSMCconfig.csv. При последующих запусках программы сохраненные данные
-			/// автоматически заполняют форму.
+			/// РџСЂРё РїРµСЂРІРѕРЅР°С‡Р°Р»СЊРЅРѕРј РѕС‚РєСЂС‹С‚РёРё РїСЂРѕРіСЂР°РјРјС‹ РІ РїР°РїРєРµ "Р”РѕРєСѓРјРµРЅС‚С‹" СЃРѕР·РґР°РµС‚СЃСЏ РїР°РїРєР° "EMS model comparer", Р° С‚Р°РєР¶Рµ С„Р°Р№Р»С‹, РЅРµРѕР±С…РѕРґРёРјС‹Рµ РґР»СЏ СЂР°Р±РѕС‚С‹ РїСЂРѕРіСЂР°РјРјС‹.
+			///	РќР°РёРјРµРЅРѕРІР°РЅРёРµ СЃРµСЂРІРµСЂР° Р·Р°РґР°РµС‚СЃСЏ РІ С„РѕСЂРјР°С‚Рµ: *** (РЅР°Р·РІР°РЅРёРµ РјРѕР¶РЅРѕ СѓР·РЅР°С‚СЊ РІ РњРµРЅРµРґР¶РµСЂРµ РІРµСЂСЃРёР№ РјРѕРґРµР»Рё РїРѕ РїСѓС‚Рё Р’РёРґ\РРЅС„РѕСЂРјР°С†РёСЏ Рѕ РјРѕРґРµР»Рё\РЎРµСЂРІРµСЂ).
+			/// РќР°РёРјРµРЅРѕРІР°РЅРёРµ Р‘Р” Р·Р°РґР°РµС‚СЃСЏ РІ С„РѕСЂРјР°С‚Рµ: ODB_EnergyMain (РЅР°Р·РІР°РЅРёРµ РјРѕР¶РЅРѕ СѓР·РЅР°С‚СЊ РІ РњРµРЅРµРґР¶РµСЂРµ РІРµСЂСЃРёР№ РјРѕРґРµР»Рё РїРѕ РїСѓС‚Рё Р’РёРґ\РРЅС„РѕСЂРјР°С†РёСЏ Рѕ РјРѕРґРµР»Рё\РРјСЏ Р±Р°Р·С‹ РґР°РЅРЅС‹С…).
+			/// РџСЂРё Р·Р°РїСѓСЃРєРµ РІС‹РїРѕР»РЅРµРЅРёСЏ СЃРєСЂРёРїС‚Р° РёРЅС„РѕСЂРјР°С†РёСЏ Рѕ СЃСЂР°РІРЅРёРІР°РµРјС‹С… РјРѕРґРµР»СЏС… Р·Р°РїРёСЃС‹РІР°РµС‚СЃСЏ РІ С„Р°Р№Р» EMSMCconfig.csv. РџСЂРё РїРѕСЃР»РµРґСѓСЋС‰РёС… Р·Р°РїСѓСЃРєР°С… РїСЂРѕРіСЂР°РјРјС‹ СЃРѕС…СЂР°РЅРµРЅРЅС‹Рµ РґР°РЅРЅС‹Рµ
+			/// Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё Р·Р°РїРѕР»РЅСЏСЋС‚ С„РѕСЂРјСѓ.
 			///
-			/// Алгоритм работы программы:
-			/// 1. В заданных моделях выполняется поиск объектов по указанной роли (ДЦ + тип роли), а также всех дочерних и связанных объектов ИМ, необходимых для работы 
-			///    соответствующей подзадачи СК-11 (МТН, КПОС, МУН). Найденные объекты хранятся в памяти программы и записываются в файлы ReverseHash.csv и ForwardHash.csv (для отладки);
-			/// 2. Выполняется проход по каждому свойству, каждого объекта исходной модели и производится сравнение с аналогичными свойствами объекта в сравниваемой модели. Результаты 
-			///    сравнения моделей записываются в файл Перечень изменений.csv;
-			/// 3. При наличии значений свойств в файле ExceptionPropertyList.csv эти свойства игнорируются у всех сравниваемых объектов и в итоговый файл с резултатами сравнениями не 
-			///    попадают.
-			/// 4. Замечания/ошибки/предложения по работе программы прошу присыласть на почту alehinra@odusv.so-ups.ru.
+			/// РђР»РіРѕСЂРёС‚Рј СЂР°Р±РѕС‚С‹ РїСЂРѕРіСЂР°РјРјС‹:
+			/// 1. Р’ Р·Р°РґР°РЅРЅС‹С… РјРѕРґРµР»СЏС… РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ РїРѕРёСЃРє РѕР±СЉРµРєС‚РѕРІ РїРѕ СѓРєР°Р·Р°РЅРЅРѕР№ СЂРѕР»Рё (Р”Р¦ + С‚РёРї СЂРѕР»Рё), Р° С‚Р°РєР¶Рµ РІСЃРµС… РґРѕС‡РµСЂРЅРёС… Рё СЃРІСЏР·Р°РЅРЅС‹С… РѕР±СЉРµРєС‚РѕРІ РРњ, РЅРµРѕР±С…РѕРґРёРјС‹С… РґР»СЏ СЂР°Р±РѕС‚С‹ 
+			///    СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰РµР№ РїРѕРґР·Р°РґР°С‡Рё РЎРљ-11 (РњРўРќ, РљРџРћРЎ, РњРЈРќ). РќР°Р№РґРµРЅРЅС‹Рµ РѕР±СЉРµРєС‚С‹ С…СЂР°РЅСЏС‚СЃСЏ РІ РїР°РјСЏС‚Рё РїСЂРѕРіСЂР°РјРјС‹ Рё Р·Р°РїРёСЃС‹РІР°СЋС‚СЃСЏ РІ С„Р°Р№Р»С‹ ReverseHash.csv Рё ForwardHash.csv (РґР»СЏ РѕС‚Р»Р°РґРєРё);
+			/// 2. Р’С‹РїРѕР»РЅСЏРµС‚СЃСЏ РїСЂРѕС…РѕРґ РїРѕ РєР°Р¶РґРѕРјСѓ СЃРІРѕР№СЃС‚РІСѓ, РєР°Р¶РґРѕРіРѕ РѕР±СЉРµРєС‚Р° РёСЃС…РѕРґРЅРѕР№ РјРѕРґРµР»Рё Рё РїСЂРѕРёР·РІРѕРґРёС‚СЃСЏ СЃСЂР°РІРЅРµРЅРёРµ СЃ Р°РЅР°Р»РѕРіРёС‡РЅС‹РјРё СЃРІРѕР№СЃС‚РІР°РјРё РѕР±СЉРµРєС‚Р° РІ СЃСЂР°РІРЅРёРІР°РµРјРѕР№ РјРѕРґРµР»Рё. Р РµР·СѓР»СЊС‚Р°С‚С‹ 
+			///    СЃСЂР°РІРЅРµРЅРёСЏ РјРѕРґРµР»РµР№ Р·Р°РїРёСЃС‹РІР°СЋС‚СЃСЏ РІ С„Р°Р№Р» РџРµСЂРµС‡РµРЅСЊ РёР·РјРµРЅРµРЅРёР№.csv;
+			/// 3. РџСЂРё РЅР°Р»РёС‡РёРё Р·РЅР°С‡РµРЅРёР№ СЃРІРѕР№СЃС‚РІ РІ С„Р°Р№Р»Рµ ExceptionPropertyList.csv СЌС‚Рё СЃРІРѕР№СЃС‚РІР° РёРіРЅРѕСЂРёСЂСѓСЋС‚СЃСЏ Сѓ РІСЃРµС… СЃСЂР°РІРЅРёРІР°РµРјС‹С… РѕР±СЉРµРєС‚РѕРІ Рё РІ РёС‚РѕРіРѕРІС‹Р№ С„Р°Р№Р» СЃ СЂРµР·СѓР»С‚Р°С‚Р°РјРё СЃСЂР°РІРЅРµРЅРёСЏРјРё РЅРµ 
+			///    РїРѕРїР°РґР°СЋС‚.
+			/// 4. Р—Р°РјРµС‡Р°РЅРёСЏ/РѕС€РёР±РєРё/РїСЂРµРґР»РѕР¶РµРЅРёСЏ РїРѕ СЂР°Р±РѕС‚Рµ РїСЂРѕРіСЂР°РјРјС‹ РїСЂРѕС€Сѓ РїСЂРёСЃС‹Р»Р°СЃС‚СЊ РЅР° РїРѕС‡С‚Сѓ alehinra@odusv.so-ups.ru.
 
 			try
 			{
-				// Путь к файлам скрипта
+				// РџСѓС‚СЊ Рє С„Р°Р№Р»Р°Рј СЃРєСЂРёРїС‚Р°
 				var pathToScriptFiles = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\EMS model comparer";
 
-				string md = Environment.GetFolderPath(Environment.SpecialFolder.Personal);//путь к Документам
+				string md = Environment.GetFolderPath(Environment.SpecialFolder.Personal);//РїСѓС‚СЊ Рє Р”РѕРєСѓРјРµРЅС‚Р°Рј
 				if (System.IO.Directory.Exists(pathToScriptFiles) == false)
 				{
 					System.IO.Directory.CreateDirectory(pathToScriptFiles);
@@ -44,7 +54,7 @@ namespace EMSModelComparer
 
 				//string mydocu = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
-				// Проверка наличия и чтение настроек скрипта
+				// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ Рё С‡С‚РµРЅРёРµ РЅР°СЃС‚СЂРѕРµРє СЃРєСЂРёРїС‚Р°
 				var _odbServerName = String.Empty;
 				var reverseOdbInstanseName = String.Empty;
 				var reverseOdbModelVersionId = String.Empty;
@@ -65,7 +75,7 @@ namespace EMSModelComparer
 							_odbServerName = scriptParams[1];
 						/*{	
 							if (scriptParams[1] == null || scriptParams[1] == "")
-								_odbServerName = "ag-lis-aipim";
+								_odbServerName = "";
 							else
 								_odbServerName = scriptParams[1];			
 						}*/
@@ -86,7 +96,7 @@ namespace EMSModelComparer
 					fileInf.Create();
 				}
 
-				// Проверка наличия необходимых для скрипта файлов
+				// РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РЅРµРѕР±С…РѕРґРёРјС‹С… РґР»СЏ СЃРєСЂРёРїС‚Р° С„Р°Р№Р»РѕРІ
 				fileInf = new System.IO.FileInfo(pathToScriptFiles + @"\ExceptionPropertyList.csv");
 				if (!fileInf.Exists)
 					fileInf.Create();
@@ -96,41 +106,41 @@ namespace EMSModelComparer
 				fileInf = new System.IO.FileInfo(pathToScriptFiles + @"\ForwardHash.csv");
 				if (!fileInf.Exists)
 					fileInf.Create();
-				fileInf = new System.IO.FileInfo(pathToScriptFiles + @"\Перечень изменений.csv");
+				fileInf = new System.IO.FileInfo(pathToScriptFiles + @"\РџРµСЂРµС‡РµРЅСЊ РёР·РјРµРЅРµРЅРёР№.csv");
 				if (!fileInf.Exists)
 					fileInf.Create();
 
-				// Потоки для работы с файлами		
+				// РџРѕС‚РѕРєРё РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ С„Р°Р№Р»Р°РјРё		
 				System.IO.StreamWriter swReverse = null;
 				System.IO.StreamWriter swForward = null;
 				System.IO.StreamWriter swDiff = null;
 				System.IO.StreamReader srExcep = null;
 
-				// Список с измененияим в модели
+				// РЎРїРёСЃРѕРє СЃ РёР·РјРµРЅРµРЅРёСЏРёРј РІ РјРѕРґРµР»Рё
 				List<string> listOfDifferences = new List<string>();
 				HashSet<string> exceptionPropertyHash = null;
 
 				ModelImage reverseModelImage;
 				ModelImage forwardModelImage;
 
-				//Создание главного окна, scroll и StackPanel
+				//РЎРѕР·РґР°РЅРёРµ РіР»Р°РІРЅРѕРіРѕ РѕРєРЅР°, scroll Рё StackPanel
 				Window mainWindow = new Window();
 				var scroll = new System.Windows.Controls.ScrollViewer();
 				var mainStackPanel = new System.Windows.Controls.StackPanel();
 
-				//Инициализация главного окна
-				mainWindow.Title = "Окно замечаний";
+				//РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РіР»Р°РІРЅРѕРіРѕ РѕРєРЅР°
+				mainWindow.Title = "РћРєРЅРѕ Р·Р°РјРµС‡Р°РЅРёР№";
 				mainWindow.Width = 750;
 				mainWindow.MaxWidth = 750;
 				mainWindow.Content = scroll;
 				mainWindow.ResizeMode = ResizeMode.NoResize;
 				mainWindow.SizeToContent = SizeToContent.Height;
 
-				//Инициализация элемента scroll
+				//РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ СЌР»РµРјРµРЅС‚Р° scroll
 				scroll.VerticalScrollBarVisibility = System.Windows.Controls.ScrollBarVisibility.Visible;
 				scroll.Content = mainStackPanel;
 
-				//Обработчик события при прокрутке scroll
+				//РћР±СЂР°Р±РѕС‚С‡РёРє СЃРѕР±С‹С‚РёСЏ РїСЂРё РїСЂРѕРєСЂСѓС‚РєРµ scroll
 				Action<object, System.Windows.RoutedEventArgs> ScrollDown = (sender, e) =>
 				{
 					scroll.LineDown();
@@ -145,17 +155,17 @@ namespace EMSModelComparer
 
 				var expander = new System.Windows.Controls.Expander();
 
-				//=======МОЁ (НАЧАЛО)===================================================================
+				//=======РњРћРЃ (РќРђР§РђР›Рћ)===================================================================
 
-				// GroupBox для вывода организации и роли
+				// GroupBox РґР»СЏ РІС‹РІРѕРґР° РѕСЂРіР°РЅРёР·Р°С†РёРё Рё СЂРѕР»Рё
 				var grBoxOrganisation = new System.Windows.Controls.GroupBox();
 				grBoxOrganisation.IsEnabled = true;
-				grBoxOrganisation.Header = "Настройки организации и роли";
+				grBoxOrganisation.Header = "РќР°СЃС‚СЂРѕР№РєРё РѕСЂРіР°РЅРёР·Р°С†РёРё Рё СЂРѕР»Рё";
 				grBoxOrganisation.Margin = new Thickness(5, 5, 5, 5);
 
 				var orgStackPanel = new System.Windows.Controls.StackPanel();
 
-				// Grid для параметров организации
+				// Grid РґР»СЏ РїР°СЂР°РјРµС‚СЂРѕРІ РѕСЂРіР°РЅРёР·Р°С†РёРё
 				var organisationGrid = new System.Windows.Controls.Grid();
 				organisationGrid.ShowGridLines = false;
 				organisationGrid.Margin = new Thickness(5, 5, 5, 0);
@@ -170,17 +180,17 @@ namespace EMSModelComparer
 					Width = System.Windows.GridLength.Auto
 				});
 
-				// TextBlock для ввода проверяемой организации
+				// TextBlock РґР»СЏ РІРІРѕРґР° РїСЂРѕРІРµСЂСЏРµРјРѕР№ РѕСЂРіР°РЅРёР·Р°С†РёРё
 				var textBlockOrganisation = new System.Windows.Controls.TextBlock();
 				textBlockOrganisation.IsEnabled = true;
-				textBlockOrganisation.Text = "Организация (UID): ";
+				textBlockOrganisation.Text = "РћСЂРіР°РЅРёР·Р°С†РёСЏ (UID): ";
 
-				// TextBox для ввода проверяемой организации
+				// TextBox РґР»СЏ РІРІРѕРґР° РїСЂРѕРІРµСЂСЏРµРјРѕР№ РѕСЂРіР°РЅРёР·Р°С†РёРё
 				var textBoxOrganisation = new System.Windows.Controls.TextBox();
 				textBoxOrganisation.IsEnabled = true;
 				textBoxOrganisation.Margin = new Thickness(5, 5, 5, 5);
 
-				// Grid для параметров роли
+				// Grid РґР»СЏ РїР°СЂР°РјРµС‚СЂРѕРІ СЂРѕР»Рё
 				var roleGrid = new System.Windows.Controls.Grid();
 				roleGrid.ShowGridLines = false;
 				roleGrid.Margin = new Thickness(5, 5, 5, 0);
@@ -195,22 +205,22 @@ namespace EMSModelComparer
 					Width = System.Windows.GridLength.Auto
 				});
 
-				// TextBlock для ввода проверяемой роли организации
+				// TextBlock РґР»СЏ РІРІРѕРґР° РїСЂРѕРІРµСЂСЏРµРјРѕР№ СЂРѕР»Рё РѕСЂРіР°РЅРёР·Р°С†РёРё
 				var textBlockOrganisationRole = new System.Windows.Controls.TextBlock();
 				textBlockOrganisationRole.IsEnabled = true;
-				textBlockOrganisationRole.Text = "Роль организации (UID): ";
+				textBlockOrganisationRole.Text = "Р РѕР»СЊ РѕСЂРіР°РЅРёР·Р°С†РёРё (UID): ";
 
 				var ComboBoxOrgRole = new System.Windows.Controls.ComboBox();
 				ComboBoxOrgRole.IsEnabled = true;
 				ComboBoxOrgRole.Margin = new Thickness(5, 5, 5, 5);
-				ComboBoxOrgRole.Items.Add("Контроль в МТН");
-				ComboBoxOrgRole.Items.Add("Контроль в КПОС (в планах)");
-				ComboBoxOrgRole.Items.Add("Контроль в МУН (в планах)");
+				ComboBoxOrgRole.Items.Add("РљРѕРЅС‚СЂРѕР»СЊ РІ РњРўРќ");
+				ComboBoxOrgRole.Items.Add("РљРѕРЅС‚СЂРѕР»СЊ РІ РљРџРћРЎ (РІ РїР»Р°РЅР°С…)");
+				ComboBoxOrgRole.Items.Add("РљРѕРЅС‚СЂРѕР»СЊ РІ РњРЈРќ (РІ РїР»Р°РЅР°С…)");
 				ComboBoxOrgRole.SelectedIndex = 0;
 
 				mainStackPanel.Children.Add(grBoxOrganisation);
 
-				// Включение элементов в organisationGrid
+				// Р’РєР»СЋС‡РµРЅРёРµ СЌР»РµРјРµРЅС‚РѕРІ РІ organisationGrid
 				System.Windows.Controls.Grid.SetRow(textBlockOrganisation, 0);
 				System.Windows.Controls.Grid.SetColumn(textBlockOrganisation, 0);
 
@@ -235,15 +245,15 @@ namespace EMSModelComparer
 
 
 
-				// GroupBox для настройки директории используемых файлов
+				// GroupBox РґР»СЏ РЅР°СЃС‚СЂРѕР№РєРё РґРёСЂРµРєС‚РѕСЂРёРё РёСЃРїРѕР»СЊР·СѓРµРјС‹С… С„Р°Р№Р»РѕРІ
 				var grBoxFilesDir = new System.Windows.Controls.GroupBox();
 				grBoxFilesDir.IsEnabled = true;
-				grBoxFilesDir.Header = "Настройки папки с файлами";
+				grBoxFilesDir.Header = "РќР°СЃС‚СЂРѕР№РєРё РїР°РїРєРё СЃ С„Р°Р№Р»Р°РјРё";
 				grBoxFilesDir.Margin = new Thickness(5, 5, 5, 5);
 
 				var stackPanelFilesDir = new System.Windows.Controls.StackPanel();
 
-				// Grid для параметров папки
+				// Grid РґР»СЏ РїР°СЂР°РјРµС‚СЂРѕРІ РїР°РїРєРё
 				var fileDirGrid = new System.Windows.Controls.Grid();
 				fileDirGrid.ShowGridLines = false;
 				fileDirGrid.Margin = new Thickness(5, 5, 5, 0);
@@ -258,21 +268,21 @@ namespace EMSModelComparer
 					Width = System.Windows.GridLength.Auto
 				});
 
-				// TextBlock для ввода папки для работы с файлами
+				// TextBlock РґР»СЏ РІРІРѕРґР° РїР°РїРєРё РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ С„Р°Р№Р»Р°РјРё
 				var textBlockFilesDir = new System.Windows.Controls.TextBlock();
 				textBlockFilesDir.IsEnabled = true;
-				textBlockFilesDir.Text = "Папка для работы с файлами: ";
+				textBlockFilesDir.Text = "РџР°РїРєР° РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ С„Р°Р№Р»Р°РјРё: ";
 
-				// TextBox для ввода папки для работы с файлами
+				// TextBox РґР»СЏ РІРІРѕРґР° РїР°РїРєРё РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ С„Р°Р№Р»Р°РјРё
 				var textBoxDirPath = new System.Windows.Controls.TextBox();
 				textBoxDirPath.IsEnabled = true;
 				textBoxDirPath.MinWidth = 200;
 				textBoxDirPath.Margin = new Thickness(5, 5, 5, 5);
 
-				// TextBlock для ввода комментария по папке
+				// TextBlock РґР»СЏ РІРІРѕРґР° РєРѕРјРјРµРЅС‚Р°СЂРёСЏ РїРѕ РїР°РїРєРµ
 				var textBlockFilesDirComment = new System.Windows.Controls.TextBlock();
 				textBlockFilesDirComment.IsEnabled = true;
-				textBlockFilesDirComment.Text = "В указанной папке будут создаваться или перезаписываться файлы \nExceptionPropertyList.csv, ForwardHash.csv, ReverseHash.csv, \nПеречень изменений по МТН.csv";
+				textBlockFilesDirComment.Text = "Р’ СѓРєР°Р·Р°РЅРЅРѕР№ РїР°РїРєРµ Р±СѓРґСѓС‚ СЃРѕР·РґР°РІР°С‚СЊСЃСЏ РёР»Рё РїРµСЂРµР·Р°РїРёСЃС‹РІР°С‚СЊСЃСЏ С„Р°Р№Р»С‹ \nExceptionPropertyList.csv, ForwardHash.csv, ReverseHash.csv, \nРџРµСЂРµС‡РµРЅСЊ РёР·РјРµРЅРµРЅРёР№ РїРѕ РњРўРќ.csv";
 
 				//mainStackPanel.Children.Add(grBoxFilesDir);
 
@@ -291,15 +301,15 @@ namespace EMSModelComparer
 				grBoxFilesDir.Content = stackPanelFilesDir;
 
 
-				// GroupBox для выбора сравниваемых моделей
+				// GroupBox РґР»СЏ РІС‹Р±РѕСЂР° СЃСЂР°РІРЅРёРІР°РµРјС‹С… РјРѕРґРµР»РµР№
 				var grBoxComparedModels = new System.Windows.Controls.GroupBox();
 				grBoxComparedModels.IsEnabled = true;
-				grBoxComparedModels.Header = "Настройки сравниваемых моделей";
+				grBoxComparedModels.Header = "РќР°СЃС‚СЂРѕР№РєРё СЃСЂР°РІРЅРёРІР°РµРјС‹С… РјРѕРґРµР»РµР№";
 				grBoxComparedModels.Margin = new Thickness(5, 5, 5, 5);
 
 				var stackPanelComparedModels = new System.Windows.Controls.StackPanel();
 
-				// Grid для настроки сервера
+				// Grid РґР»СЏ РЅР°СЃС‚СЂРѕРєРё СЃРµСЂРІРµСЂР°
 				var serverGrid = new System.Windows.Controls.Grid();
 				serverGrid.ShowGridLines = false;
 				serverGrid.Margin = new Thickness(5, 5, 5, 0);
@@ -314,19 +324,19 @@ namespace EMSModelComparer
 					Width = System.Windows.GridLength.Auto
 				});
 
-				// TextBlock для ввода контекста исходной модели
+				// TextBlock РґР»СЏ РІРІРѕРґР° РєРѕРЅС‚РµРєСЃС‚Р° РёСЃС…РѕРґРЅРѕР№ РјРѕРґРµР»Рё
 				var textBlockServerName = new System.Windows.Controls.TextBlock();
 				textBlockServerName.IsEnabled = true;
-				textBlockServerName.Text = "Имя сервера: ";
+				textBlockServerName.Text = "РРјСЏ СЃРµСЂРІРµСЂР°: ";
 
-				// TextBox для ввода контекста исходной модели
+				// TextBox РґР»СЏ РІРІРѕРґР° РєРѕРЅС‚РµРєСЃС‚Р° РёСЃС…РѕРґРЅРѕР№ РјРѕРґРµР»Рё
 				var textBoxServerName = new System.Windows.Controls.TextBox();
 				textBoxServerName.IsEnabled = true;
 				textBoxServerName.Width = 200;
 				textBoxServerName.Margin = new Thickness(5, 5, 5, 5);
 				textBoxServerName.Text = _odbServerName;
 
-				// Grid для настроки контекста исходной модели
+				// Grid РґР»СЏ РЅР°СЃС‚СЂРѕРєРё РєРѕРЅС‚РµРєСЃС‚Р° РёСЃС…РѕРґРЅРѕР№ РјРѕРґРµР»Рё
 				var reverseModelContextGrid = new System.Windows.Controls.Grid();
 				reverseModelContextGrid.ShowGridLines = false;
 				reverseModelContextGrid.Margin = new Thickness(5, 5, 5, 0);
@@ -341,19 +351,19 @@ namespace EMSModelComparer
 					Width = System.Windows.GridLength.Auto
 				});
 
-				// TextBlock для ввода контекста исходной модели
+				// TextBlock РґР»СЏ РІРІРѕРґР° РєРѕРЅС‚РµРєСЃС‚Р° РёСЃС…РѕРґРЅРѕР№ РјРѕРґРµР»Рё
 				var textBlockReverseModelContext = new System.Windows.Controls.TextBlock();
 				textBlockReverseModelContext.IsEnabled = true;
-				textBlockReverseModelContext.Text = "Контекст исходной модели: ";
+				textBlockReverseModelContext.Text = "РљРѕРЅС‚РµРєСЃС‚ РёСЃС…РѕРґРЅРѕР№ РјРѕРґРµР»Рё: ";
 
-				// TextBox для ввода контекста исходной модели
+				// TextBox РґР»СЏ РІРІРѕРґР° РєРѕРЅС‚РµРєСЃС‚Р° РёСЃС…РѕРґРЅРѕР№ РјРѕРґРµР»Рё
 				var textBoxReverseModelContext = new System.Windows.Controls.TextBox();
 				textBoxReverseModelContext.IsEnabled = true;
 				textBoxReverseModelContext.Width = 200;
 				textBoxReverseModelContext.Margin = new Thickness(5, 5, 5, 5);
 				textBoxReverseModelContext.Text = reverseOdbInstanseName;
 
-				// Grid для настроки номера исходной модели
+				// Grid РґР»СЏ РЅР°СЃС‚СЂРѕРєРё РЅРѕРјРµСЂР° РёСЃС…РѕРґРЅРѕР№ РјРѕРґРµР»Рё
 				var reverseModelNumGrid = new System.Windows.Controls.Grid();
 				reverseModelNumGrid.ShowGridLines = false;
 				reverseModelNumGrid.Margin = new Thickness(5, 5, 5, 0);
@@ -368,19 +378,19 @@ namespace EMSModelComparer
 					Width = System.Windows.GridLength.Auto
 				});
 
-				// TextBlock для ввода номера исходной модели
+				// TextBlock РґР»СЏ РІРІРѕРґР° РЅРѕРјРµСЂР° РёСЃС…РѕРґРЅРѕР№ РјРѕРґРµР»Рё
 				var textBlockReverseModelNum = new System.Windows.Controls.TextBlock();
 				textBlockReverseModelNum.IsEnabled = true;
-				textBlockReverseModelNum.Text = "Номер исходной модели: ";
+				textBlockReverseModelNum.Text = "РќРѕРјРµСЂ РёСЃС…РѕРґРЅРѕР№ РјРѕРґРµР»Рё: ";
 
-				// TextBox для ввода номера исходной модели
+				// TextBox РґР»СЏ РІРІРѕРґР° РЅРѕРјРµСЂР° РёСЃС…РѕРґРЅРѕР№ РјРѕРґРµР»Рё
 				var textBoxReverseModelNum = new System.Windows.Controls.TextBox();
 				textBoxReverseModelNum.IsEnabled = true;
 				textBoxReverseModelNum.Width = 200;
 				textBoxReverseModelNum.Margin = new Thickness(5, 5, 5, 5);
 				textBoxReverseModelNum.Text = reverseOdbModelVersionId;
 
-				// Grid для настроки контекста сравниваемой модели
+				// Grid РґР»СЏ РЅР°СЃС‚СЂРѕРєРё РєРѕРЅС‚РµРєСЃС‚Р° СЃСЂР°РІРЅРёРІР°РµРјРѕР№ РјРѕРґРµР»Рё
 				var forwardModelContextGrid = new System.Windows.Controls.Grid();
 				forwardModelContextGrid.ShowGridLines = false;
 				forwardModelContextGrid.Margin = new Thickness(5, 5, 5, 0);
@@ -395,19 +405,19 @@ namespace EMSModelComparer
 					Width = System.Windows.GridLength.Auto
 				});
 
-				// TextBlock для ввода контекста сравниваемой модели
+				// TextBlock РґР»СЏ РІРІРѕРґР° РєРѕРЅС‚РµРєСЃС‚Р° СЃСЂР°РІРЅРёРІР°РµРјРѕР№ РјРѕРґРµР»Рё
 				var textBlockForwardModelContext = new System.Windows.Controls.TextBlock();
 				textBlockForwardModelContext.IsEnabled = true;
-				textBlockForwardModelContext.Text = "Контекст сравниваемой модели: ";
+				textBlockForwardModelContext.Text = "РљРѕРЅС‚РµРєСЃС‚ СЃСЂР°РІРЅРёРІР°РµРјРѕР№ РјРѕРґРµР»Рё: ";
 
-				// TextBox для ввода контекста сравниваемой модели
+				// TextBox РґР»СЏ РІРІРѕРґР° РєРѕРЅС‚РµРєСЃС‚Р° СЃСЂР°РІРЅРёРІР°РµРјРѕР№ РјРѕРґРµР»Рё
 				var textBoxForwardModelContext = new System.Windows.Controls.TextBox();
 				textBoxForwardModelContext.IsEnabled = true;
 				textBoxForwardModelContext.Width = 200;
 				textBoxForwardModelContext.Margin = new Thickness(5, 5, 5, 5);
 				textBoxForwardModelContext.Text = forwardOdbInstanseName;
 
-				// Grid для настроки номера сравниваемой модели
+				// Grid РґР»СЏ РЅР°СЃС‚СЂРѕРєРё РЅРѕРјРµСЂР° СЃСЂР°РІРЅРёРІР°РµРјРѕР№ РјРѕРґРµР»Рё
 				var forwardModelNumGrid = new System.Windows.Controls.Grid();
 				forwardModelNumGrid.ShowGridLines = false;
 				forwardModelNumGrid.Margin = new Thickness(5, 5, 5, 0);
@@ -422,12 +432,12 @@ namespace EMSModelComparer
 					Width = System.Windows.GridLength.Auto
 				});
 
-				// TextBlock для ввода номера сравниваемой модели
+				// TextBlock РґР»СЏ РІРІРѕРґР° РЅРѕРјРµСЂР° СЃСЂР°РІРЅРёРІР°РµРјРѕР№ РјРѕРґРµР»Рё
 				var textBlockForwardModelNum = new System.Windows.Controls.TextBlock();
 				textBlockForwardModelNum.IsEnabled = true;
-				textBlockForwardModelNum.Text = "Номер сравниваемой модели: ";
+				textBlockForwardModelNum.Text = "РќРѕРјРµСЂ СЃСЂР°РІРЅРёРІР°РµРјРѕР№ РјРѕРґРµР»Рё: ";
 
-				// TextBox для ввода номера сравниваемой модели
+				// TextBox РґР»СЏ РІРІРѕРґР° РЅРѕРјРµСЂР° СЃСЂР°РІРЅРёРІР°РµРјРѕР№ РјРѕРґРµР»Рё
 				var textBoxForwardModelNum = new System.Windows.Controls.TextBox();
 				textBoxForwardModelNum.IsEnabled = true;
 				textBoxForwardModelNum.Width = 200;
@@ -496,24 +506,24 @@ namespace EMSModelComparer
 
 				grBoxComparedModels.Content = stackPanelComparedModels;
 
-				// Button для выполнения действия
+				// Button РґР»СЏ РІС‹РїРѕР»РЅРµРЅРёСЏ РґРµР№СЃС‚РІРёСЏ
 				var actionButton = new System.Windows.Controls.Button();
 				actionButton.IsEnabled = true;
 				actionButton.Height = 30;
-				actionButton.Content = "Сравнить модели";
+				actionButton.Content = "РЎСЂР°РІРЅРёС‚СЊ РјРѕРґРµР»Рё";
 
 				mainStackPanel.Children.Add(actionButton);
 
-				// UID текущей организации
-				Guid OrgUid = Services.License.OrganizationUid;
+				// UID С‚РµРєСѓС‰РµР№ РѕСЂРіР°РЅРёР·Р°С†РёРё
+				Guid OrgUid = Monitel.UI.Infrastructure.Services.License.OrganizationUid;
 				textBoxOrganisation.Text = OrgUid.ToString();
 
 
-				// Запуск скрипта
+				// Р—Р°РїСѓСЃРє СЃРєСЂРёРїС‚Р°
 				actionButton.Click += (sender, a) => {
 					try
 					{
-						// Чтение данных
+						// Р§С‚РµРЅРёРµ РґР°РЅРЅС‹С…
 						_odbServerName = textBoxServerName.Text;
 						reverseOdbInstanseName = textBoxReverseModelContext.Text;
 						reverseOdbModelVersionId = textBoxReverseModelNum.Text;
@@ -523,10 +533,10 @@ namespace EMSModelComparer
 						if (_odbServerName == String.Empty || reverseOdbInstanseName == String.Empty || reverseOdbModelVersionId == String.Empty ||
 						forwardOdbInstanseName == String.Empty || forwardOdbModelVersionId == String.Empty)
 						{
-							throw new Exception("Введены не все данные для работы скрипта");
+							throw new Exception("Р’РІРµРґРµРЅС‹ РЅРµ РІСЃРµ РґР°РЅРЅС‹Рµ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃРєСЂРёРїС‚Р°");
 						}
 
-						// Запись данных в config файл
+						// Р—Р°РїРёСЃСЊ РґР°РЅРЅС‹С… РІ config С„Р°Р№Р»
 						//string configFilePath = pathToScriptFiles + @"\EMSMCconfig.csv";
 						System.IO.StreamWriter swConfig = new System.IO.StreamWriter(configFilePath, false, System.Text.Encoding.Default);
 						swConfig.WriteLine("OdbServerName;" + _odbServerName);
@@ -536,7 +546,7 @@ namespace EMSModelComparer
 						swConfig.WriteLine("ForwardOdbModelVersionId;" + forwardOdbModelVersionId);
 						swConfig.Close();
 
-						// Подключение к исходной модели
+						// РџРѕРґРєР»СЋС‡РµРЅРёРµ Рє РёСЃС…РѕРґРЅРѕР№ РјРѕРґРµР»Рё
 						Monitel.Mal.Providers.MalContextParams reverseContext = new Monitel.Mal.Providers.MalContextParams()
 						{
 							OdbServerName = _odbServerName,
@@ -546,7 +556,7 @@ namespace EMSModelComparer
 						Monitel.Mal.Providers.Mal.MalProvider ReverseDataProvider = new Monitel.Mal.Providers.Mal.MalProvider(reverseContext, Monitel.Mal.Providers.MalContextMode.Open, "test", -1);
 						reverseModelImage = new ModelImage(ReverseDataProvider, true);
 
-						// Подключение к сравниваемой модели
+						// РџРѕРґРєР»СЋС‡РµРЅРёРµ Рє СЃСЂР°РІРЅРёРІР°РµРјРѕР№ РјРѕРґРµР»Рё
 						Monitel.Mal.Providers.MalContextParams forwardContext = new Monitel.Mal.Providers.MalContextParams()
 						{
 							OdbServerName = _odbServerName,
@@ -556,49 +566,49 @@ namespace EMSModelComparer
 						Monitel.Mal.Providers.Mal.MalProvider ForwardDataProvider = new Monitel.Mal.Providers.Mal.MalProvider(forwardContext, Monitel.Mal.Providers.MalContextMode.Open, "test", -1);
 						forwardModelImage = new ModelImage(ForwardDataProvider, true);
 
-						// Путь к реверс файлу
+						// РџСѓС‚СЊ Рє СЂРµРІРµСЂСЃ С„Р°Р№Р»Сѓ
 						string reversePath = pathToScriptFiles + @"\ReverseHash.csv";
 						System.IO.StreamWriter swReverse = new System.IO.StreamWriter(reversePath, false, System.Text.Encoding.Default);
 
-						// Путь к форвард файлу
+						// РџСѓС‚СЊ Рє С„РѕСЂРІР°СЂРґ С„Р°Р№Р»Сѓ
 						string forwardPath = pathToScriptFiles + @"\ForwardHash.csv";
 						System.IO.StreamWriter swForward = new System.IO.StreamWriter(forwardPath, false, System.Text.Encoding.Default);
 
-						// Путь к главному файлу с изменениями
-						string differencePath = pathToScriptFiles + @"\Перечень изменений.csv";
+						// РџСѓС‚СЊ Рє РіР»Р°РІРЅРѕРјСѓ С„Р°Р№Р»Сѓ СЃ РёР·РјРµРЅРµРЅРёСЏРјРё
+						string differencePath = pathToScriptFiles + @"\РџРµСЂРµС‡РµРЅСЊ РёР·РјРµРЅРµРЅРёР№.csv";
 						System.IO.StreamWriter swDiff = new System.IO.StreamWriter(differencePath, false, System.Text.Encoding.Default);
 
-						// Путь к файлу со свойствами, исключаемыми из проверки
+						// РџСѓС‚СЊ Рє С„Р°Р№Р»Сѓ СЃРѕ СЃРІРѕР№СЃС‚РІР°РјРё, РёСЃРєР»СЋС‡Р°РµРјС‹РјРё РёР· РїСЂРѕРІРµСЂРєРё
 						string exceptionPropertyListPath = pathToScriptFiles + @"\ExceptionPropertyList.csv";
 						System.IO.StreamReader srExcep = new System.IO.StreamReader(exceptionPropertyListPath, System.Text.Encoding.Default, false);
 
-						HashSet<Guid> reverseObjectsUids = new HashSet<Guid>(); // Перечень объектов контроля из старой модели
-						HashSet<Guid> forwardObjectsUids = new HashSet<Guid>(); // Перечень объектов контроля из новой модели
+						HashSet<Guid> reverseObjectsUids = new HashSet<Guid>(); // РџРµСЂРµС‡РµРЅСЊ РѕР±СЉРµРєС‚РѕРІ РєРѕРЅС‚СЂРѕР»СЏ РёР· СЃС‚Р°СЂРѕР№ РјРѕРґРµР»Рё
+						HashSet<Guid> forwardObjectsUids = new HashSet<Guid>(); // РџРµСЂРµС‡РµРЅСЊ РѕР±СЉРµРєС‚РѕРІ РєРѕРЅС‚СЂРѕР»СЏ РёР· РЅРѕРІРѕР№ РјРѕРґРµР»Рё
 
 
 
-						exceptionPropertyHash = new HashSet<string>(); // Перечень свойст, которые исключаются из проверки
+						exceptionPropertyHash = new HashSet<string>(); // РџРµСЂРµС‡РµРЅСЊ СЃРІРѕР№СЃС‚, РєРѕС‚РѕСЂС‹Рµ РёСЃРєР»СЋС‡Р°СЋС‚СЃСЏ РёР· РїСЂРѕРІРµСЂРєРё
 
-						// Поиск роли организации, по которой выполняется сравнение моделей
+						// РџРѕРёСЃРє СЂРѕР»Рё РѕСЂРіР°РЅРёР·Р°С†РёРё, РїРѕ РєРѕС‚РѕСЂРѕР№ РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ СЃСЂР°РІРЅРµРЅРёРµ РјРѕРґРµР»РµР№
 						Guid roleTypeUid;
 						if (ComboBoxOrgRole.SelectedIndex == 0)
 						{
-							roleTypeUid = new Guid("1000161E-0000-0000-C000-0000006D746C"); // Контроль в МТН
+							roleTypeUid = new Guid("1000161E-0000-0000-C000-0000006D746C"); // РљРѕРЅС‚СЂРѕР»СЊ РІ РњРўРќ
 							ODUSVCreatingListOfComparedObjectsMTN(reverseObjectsUids, ODUSVFindOrganisationRole(roleTypeUid, OrgUid), reverseModelImage);
 							ODUSVCreatingListOfComparedObjectsMTN(forwardObjectsUids, ODUSVFindOrganisationRole(roleTypeUid, OrgUid), forwardModelImage);
 						}
 						else if (ComboBoxOrgRole.SelectedIndex == 1)
 						{
-							roleTypeUid = new Guid("10001672-0000-0000-C000-0000006D746C"); // Контроль в КПОС
-							MessageBox.Show("Проверка изменений по объектам, контролируемым в КПОС, ещё не разработана");
+							roleTypeUid = new Guid("10001672-0000-0000-C000-0000006D746C"); // РљРѕРЅС‚СЂРѕР»СЊ РІ РљРџРћРЎ
+							MessageBox.Show("РџСЂРѕРІРµСЂРєР° РёР·РјРµРЅРµРЅРёР№ РїРѕ РѕР±СЉРµРєС‚Р°Рј, РєРѕРЅС‚СЂРѕР»РёСЂСѓРµРјС‹Рј РІ РљРџРћРЎ, РµС‰С‘ РЅРµ СЂР°Р·СЂР°Р±РѕС‚Р°РЅР°");
 						}
 						else if (ComboBoxOrgRole.SelectedIndex == 2)
 						{
-							roleTypeUid = new Guid("10001669-0000-0000-C000-0000006D746C"); // Контроль в МУН
-							MessageBox.Show("Проверка изменений по объектам, контролируемым в МУН, ещё не разработана");
+							roleTypeUid = new Guid("10001669-0000-0000-C000-0000006D746C"); // РљРѕРЅС‚СЂРѕР»СЊ РІ РњРЈРќ
+							MessageBox.Show("РџСЂРѕРІРµСЂРєР° РёР·РјРµРЅРµРЅРёР№ РїРѕ РѕР±СЉРµРєС‚Р°Рј, РєРѕРЅС‚СЂРѕР»РёСЂСѓРµРјС‹Рј РІ РњРЈРќ, РµС‰С‘ РЅРµ СЂР°Р·СЂР°Р±РѕС‚Р°РЅР°");
 						}
 
-						// Запись списка объектов из проверяемых моделей в соответствующие файлы
+						// Р—Р°РїРёСЃСЊ СЃРїРёСЃРєР° РѕР±СЉРµРєС‚РѕРІ РёР· РїСЂРѕРІРµСЂСЏРµРјС‹С… РјРѕРґРµР»РµР№ РІ СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰РёРµ С„Р°Р№Р»С‹
 						foreach (Guid uid in reverseObjectsUids)
 						{
 							swReverse.WriteLine(uid);
@@ -608,67 +618,67 @@ namespace EMSModelComparer
 							swForward.WriteLine(uid);
 						}
 
-						// Составление списка со связями, исключенными из проверки
+						// РЎРѕСЃС‚Р°РІР»РµРЅРёРµ СЃРїРёСЃРєР° СЃРѕ СЃРІСЏР·СЏРјРё, РёСЃРєР»СЋС‡РµРЅРЅС‹РјРё РёР· РїСЂРѕРІРµСЂРєРё
 						string line;
 						while ((line = srExcep.ReadLine()) != null)
 						{
 							exceptionPropertyHash.Add(line);
 						}
 
-						//закрыть текстовый файл для сохранения данных
+						//Р·Р°РєСЂС‹С‚СЊ С‚РµРєСЃС‚РѕРІС‹Р№ С„Р°Р№Р» РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ РґР°РЅРЅС‹С…
 						swReverse.Close();
 						swForward.Close();
 						srExcep.Close();
 
 
-						MessageBox.Show("В списке исключений: " + exceptionPropertyHash.Count());
-						MessageBox.Show("Добавлено reverse объектов: " + reverseObjectsUids.Count());
-						MessageBox.Show("Добавлено forward объектов: " + forwardObjectsUids.Count());
+						MessageBox.Show("Р’ СЃРїРёСЃРєРµ РёСЃРєР»СЋС‡РµРЅРёР№: " + exceptionPropertyHash.Count());
+						MessageBox.Show("Р”РѕР±Р°РІР»РµРЅРѕ reverse РѕР±СЉРµРєС‚РѕРІ: " + reverseObjectsUids.Count());
+						MessageBox.Show("Р”РѕР±Р°РІР»РµРЅРѕ forward РѕР±СЉРµРєС‚РѕРІ: " + forwardObjectsUids.Count());
 
-						// Далее составляется список изменений в моделях
-						listOfDifferences.Add("UID;Действие;Текст;Имя объекта;Класс объекта;Ответственный за моделирование");   // Шапка таблицы
+						// Р”Р°Р»РµРµ СЃРѕСЃС‚Р°РІР»СЏРµС‚СЃСЏ СЃРїРёСЃРѕРє РёР·РјРµРЅРµРЅРёР№ РІ РјРѕРґРµР»СЏС…
+						listOfDifferences.Add("UID;Р”РµР№СЃС‚РІРёРµ;РўРµРєСЃС‚;РРјСЏ РѕР±СЉРµРєС‚Р°;РљР»Р°СЃСЃ РѕР±СЉРµРєС‚Р°;РћС‚РІРµС‚СЃС‚РІРµРЅРЅС‹Р№ Р·Р° РјРѕРґРµР»РёСЂРѕРІР°РЅРёРµ");   // РЁР°РїРєР° С‚Р°Р±Р»РёС†С‹
 
-						HashSet<Guid> deletedObjectsUids = new HashSet<Guid>(reverseObjectsUids);   // Перечень объектов удаленных из модели
+						HashSet<Guid> deletedObjectsUids = new HashSet<Guid>(reverseObjectsUids);   // РџРµСЂРµС‡РµРЅСЊ РѕР±СЉРµРєС‚РѕРІ СѓРґР°Р»РµРЅРЅС‹С… РёР· РјРѕРґРµР»Рё
 						deletedObjectsUids.ExceptWith(forwardObjectsUids);
 
-						MessageBox.Show("Удаленных объектов: " + deletedObjectsUids.Count());
+						MessageBox.Show("РЈРґР°Р»РµРЅРЅС‹С… РѕР±СЉРµРєС‚РѕРІ: " + deletedObjectsUids.Count());
 
 						foreach (Guid uid in deletedObjectsUids)
 						{
 							ODUSVWriteAddedOrDeletedObject(uid, reverseModelImage, "deleted");
 						}
 
-						HashSet<Guid> addedObjectsUids = new HashSet<Guid>(forwardObjectsUids); // Перечень объектов добавленных в модель
+						HashSet<Guid> addedObjectsUids = new HashSet<Guid>(forwardObjectsUids); // РџРµСЂРµС‡РµРЅСЊ РѕР±СЉРµРєС‚РѕРІ РґРѕР±Р°РІР»РµРЅРЅС‹С… РІ РјРѕРґРµР»СЊ
 						addedObjectsUids.ExceptWith(reverseObjectsUids);
 
-						MessageBox.Show("Добавленных объектов: " + addedObjectsUids.Count());
+						MessageBox.Show("Р”РѕР±Р°РІР»РµРЅРЅС‹С… РѕР±СЉРµРєС‚РѕРІ: " + addedObjectsUids.Count());
 
 						foreach (Guid uid in addedObjectsUids)
 						{
 							ODUSVWriteAddedOrDeletedObject(uid, forwardModelImage, "added");
 						}
 
-						// Добавление в список измененных объектов
-						HashSet<Guid> otherMTNUids = new HashSet<Guid>(reverseObjectsUids); // Перечень объектов добавленных в модель
+						// Р”РѕР±Р°РІР»РµРЅРёРµ РІ СЃРїРёСЃРѕРє РёР·РјРµРЅРµРЅРЅС‹С… РѕР±СЉРµРєС‚РѕРІ
+						HashSet<Guid> otherMTNUids = new HashSet<Guid>(reverseObjectsUids); // РџРµСЂРµС‡РµРЅСЊ РѕР±СЉРµРєС‚РѕРІ РґРѕР±Р°РІР»РµРЅРЅС‹С… РІ РјРѕРґРµР»СЊ
 						otherMTNUids.IntersectWith(forwardObjectsUids);
 
-						MessageBox.Show("Оставшихся объектов: " + otherMTNUids.Count());
+						MessageBox.Show("РћСЃС‚Р°РІС€РёС…СЃСЏ РѕР±СЉРµРєС‚РѕРІ: " + otherMTNUids.Count());
 
-						// Составление списка изменений
+						// РЎРѕСЃС‚Р°РІР»РµРЅРёРµ СЃРїРёСЃРєР° РёР·РјРµРЅРµРЅРёР№
 						foreach (Guid uid in otherMTNUids)
 						{
 							ODUSVFindChanges(uid);
 						}
 
 
-						// Заполнение файла с измененяим
+						// Р—Р°РїРѕР»РЅРµРЅРёРµ С„Р°Р№Р»Р° СЃ РёР·РјРµРЅРµРЅСЏРёРј
 						foreach (string text in listOfDifferences)
 						{
 							swDiff.WriteLine(text);
 						}
 
 						swDiff.Close();
-						MessageBox.Show("Скрипт выполнен успешно");
+						MessageBox.Show("РЎРєСЂРёРїС‚ РІС‹РїРѕР»РЅРµРЅ СѓСЃРїРµС€РЅРѕ");
 					}
 					catch (Exception ex)
 					{
@@ -682,13 +692,13 @@ namespace EMSModelComparer
 
 
 
-				//===================МЕТОДЫ===============================================
+				//===================РњР•РўРћР”Р«===============================================
 
 				Guid ODUSVFindOrganisationRole(Guid roleTypeUid, Guid organisationUid)
 				{
 					Guid result = new Guid();
 
-					var organisation = ModelImage.GetObject<Organisation>(organisationUid);
+					var organisation = forwardModelImage.GetObject<Organisation>(organisationUid);
 					foreach (var role in organisation.Roles)
 					{
 						if (role.Category.Uid == roleTypeUid)
@@ -701,7 +711,7 @@ namespace EMSModelComparer
 					return result;
 				}
 
-				// Метод создания списка с UID'ами объектов, участвующих в МТН
+				// РњРµС‚РѕРґ СЃРѕР·РґР°РЅРёСЏ СЃРїРёСЃРєР° СЃ UID'Р°РјРё РѕР±СЉРµРєС‚РѕРІ, СѓС‡Р°СЃС‚РІСѓСЋС‰РёС… РІ РњРўРќ
 				void ODUSVCreatingListOfComparedObjectsMTN(HashSet<Guid> hashOfObjects, /*OrganisationRole orgRole*/ Guid Uid, ModelImage mImg)
 				{
 					var mObjects = mImg.GetObjects<IdentifiedObject>();
@@ -709,37 +719,37 @@ namespace EMSModelComparer
 
 					foreach (IdentifiedObject obj in orgRole.Objects)
 					{
-						// Добавляем контролируемое оборудование
+						// Р”РѕР±Р°РІР»СЏРµРј РєРѕРЅС‚СЂРѕР»РёСЂСѓРµРјРѕРµ РѕР±РѕСЂСѓРґРѕРІР°РЅРёРµ
 						hashOfObjects.Add(obj.Uid);
 
-						// Добавляем все дочерние объекты
+						// Р”РѕР±Р°РІР»СЏРµРј РІСЃРµ РґРѕС‡РµСЂРЅРёРµ РѕР±СЉРµРєС‚С‹
 						ODUSVCreatingListOfChildObjects(obj, hashOfObjects);
 					}
 				}
 
-				// Рекурсивный метод добавления в список дочерних объектов
+				// Р РµРєСѓСЂСЃРёРІРЅС‹Р№ РјРµС‚РѕРґ РґРѕР±Р°РІР»РµРЅРёСЏ РІ СЃРїРёСЃРѕРє РґРѕС‡РµСЂРЅРёС… РѕР±СЉРµРєС‚РѕРІ
 				void ODUSVCreatingListOfChildObjects(IdentifiedObject currentObj, HashSet<Guid> hashOfChildObjects)
 				{
 					if (currentObj.ChildObjects.Count() > 0)
 					{
 						foreach (IdentifiedObject childObj in currentObj.ChildObjects)
 						{
-							// Добавляем в список оборудование
+							// Р”РѕР±Р°РІР»СЏРµРј РІ СЃРїРёСЃРѕРє РѕР±РѕСЂСѓРґРѕРІР°РЅРёРµ
 							hashOfChildObjects.Add(childObj.Uid);
 
-							// Проверяем и добавляем в список все связанные метеостанции и их дочерние объекты
+							// РџСЂРѕРІРµСЂСЏРµРј Рё РґРѕР±Р°РІР»СЏРµРј РІ СЃРїРёСЃРѕРє РІСЃРµ СЃРІСЏР·Р°РЅРЅС‹Рµ РјРµС‚РµРѕСЃС‚Р°РЅС†РёРё Рё РёС… РґРѕС‡РµСЂРЅРёРµ РѕР±СЉРµРєС‚С‹
 							ODUSVFindWeatherStations(childObj, hashOfChildObjects);
 
-							// Проверяем и добавляем в список все связанные уставки ступеней РЗА
+							// РџСЂРѕРІРµСЂСЏРµРј Рё РґРѕР±Р°РІР»СЏРµРј РІ СЃРїРёСЃРѕРє РІСЃРµ СЃРІСЏР·Р°РЅРЅС‹Рµ СѓСЃС‚Р°РІРєРё СЃС‚СѓРїРµРЅРµР№ Р Р—Рђ
 							ODUSVFindPEStageSetPoints(childObj, hashOfChildObjects);
 
-							// Рекурсивно добавляем в список все дочерние объекты
+							// Р РµРєСѓСЂСЃРёРІРЅРѕ РґРѕР±Р°РІР»СЏРµРј РІ СЃРїРёСЃРѕРє РІСЃРµ РґРѕС‡РµСЂРЅРёРµ РѕР±СЉРµРєС‚С‹
 							ODUSVCreatingListOfChildObjects(childObj, hashOfChildObjects);
 						}
 					}
 				}
 
-				// Метод добавления в список связанных с оборудованием метеостанций
+				// РњРµС‚РѕРґ РґРѕР±Р°РІР»РµРЅРёСЏ РІ СЃРїРёСЃРѕРє СЃРІСЏР·Р°РЅРЅС‹С… СЃ РѕР±РѕСЂСѓРґРѕРІР°РЅРёРµРј РјРµС‚РµРѕСЃС‚Р°РЅС†РёР№
 				void ODUSVFindWeatherStations(IdentifiedObject obj, HashSet<Guid> hashOfWeatherStations)
 				{
 					if (obj is Equipment)
@@ -762,7 +772,7 @@ namespace EMSModelComparer
 					}
 				}
 
-				// Метод добавления в список уставок ступеней РЗА
+				// РњРµС‚РѕРґ РґРѕР±Р°РІР»РµРЅРёСЏ РІ СЃРїРёСЃРѕРє СѓСЃС‚Р°РІРѕРє СЃС‚СѓРїРµРЅРµР№ Р Р—Рђ
 				void ODUSVFindPEStageSetPoints(IdentifiedObject obj, HashSet<Guid> hashOfPEStageSetPoints)
 				{
 					if (obj is PEStage)
@@ -774,17 +784,17 @@ namespace EMSModelComparer
 					}
 				}
 
-				// Метод записи добавленного/удаленного объекта ИМ по UID в общий список изменений
+				// РњРµС‚РѕРґ Р·Р°РїРёСЃРё РґРѕР±Р°РІР»РµРЅРЅРѕРіРѕ/СѓРґР°Р»РµРЅРЅРѕРіРѕ РѕР±СЉРµРєС‚Р° РРњ РїРѕ UID РІ РѕР±С‰РёР№ СЃРїРёСЃРѕРє РёР·РјРµРЅРµРЅРёР№
 				void ODUSVWriteAddedOrDeletedObject(Guid uid, ModelImage mImg, string state)
 				{
 					var selectedObject = mImg.GetObject<IdentifiedObject>(uid);
 					switch (state)
 					{
 						case "deleted":
-							listOfDifferences.Add(Convert.ToString(selectedObject.Uid) + ";Удаление;Удален объект класса " + selectedObject.ClassName() + ";" + selectedObject.name + ";" + selectedObject.ClassName());
+							listOfDifferences.Add(Convert.ToString(selectedObject.Uid) + ";РЈРґР°Р»РµРЅРёРµ;РЈРґР°Р»РµРЅ РѕР±СЉРµРєС‚ РєР»Р°СЃСЃР° " + selectedObject.ClassName() + ";" + selectedObject.name + ";" + selectedObject.ClassName());
 							break;
 						case "added":
-							listOfDifferences.Add(Convert.ToString(selectedObject.Uid) + ";Добавление;Добавлен объект класса " + selectedObject.ClassName() + ";" + selectedObject.name + ";" + selectedObject.ClassName());
+							listOfDifferences.Add(Convert.ToString(selectedObject.Uid) + ";Р”РѕР±Р°РІР»РµРЅРёРµ;Р”РѕР±Р°РІР»РµРЅ РѕР±СЉРµРєС‚ РєР»Р°СЃСЃР° " + selectedObject.ClassName() + ";" + selectedObject.name + ";" + selectedObject.ClassName());
 							break;
 					}
 				}
@@ -793,12 +803,12 @@ namespace EMSModelComparer
 				void ODUSVFindChanges(Guid uid)
 				{
 					var reverseObject = reverseModelImage.GetObject</*IdentifiedObject*/IMalObject>(uid);
-					// Проверка на принадлежность к именуемым объектам или уставкам РЗА
+					// РџСЂРѕРІРµСЂРєР° РЅР° РїСЂРёРЅР°РґР»РµР¶РЅРѕСЃС‚СЊ Рє РёРјРµРЅСѓРµРјС‹Рј РѕР±СЉРµРєС‚Р°Рј РёР»Рё СѓСЃС‚Р°РІРєР°Рј Р Р—Рђ
 					if (reverseObject != null)
 					{
 						var forwardObject = forwardModelImage.GetObject</*IdentifiedObject*/IMalObject>(uid);
 
-						// Если проверяемый объект - IMalObject
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - IMalObject
 						if (reverseObject is IMalObject)
 						{
 							Type t = reverseObject.GetType();
@@ -812,7 +822,7 @@ namespace EMSModelComparer
 						}
 
 						#region             
-						// Если проверяемый объект - участок линии переменного тока
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - СѓС‡Р°СЃС‚РѕРє Р»РёРЅРёРё РїРµСЂРµРјРµРЅРЅРѕРіРѕ С‚РѕРєР°
 						if (reverseObject is ACLineSegment)
 						{
 							ACLineSegment rObj = reverseObject as ACLineSegment;
@@ -820,7 +830,7 @@ namespace EMSModelComparer
 							ODUSVPropertyReflectInfo(rObj, fObj, exceptionPropertyHash, listOfDifferences);
 						}
 
-						// Если проверяемый объект - аналог
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - Р°РЅР°Р»РѕРі
 						else if (reverseObject is Analog)
 						{
 							Analog rObj = reverseObject as Analog;
@@ -828,7 +838,7 @@ namespace EMSModelComparer
 							ODUSVPropertyReflectInfo(rObj, fObj, exceptionPropertyHash, listOfDifferences);
 						}
 
-						// Если проверяемый объект - дискрет
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РґРёСЃРєСЂРµС‚
 						else if (reverseObject is Discrete)
 						{
 							Discrete rObj = reverseObject as Discrete;
@@ -836,7 +846,7 @@ namespace EMSModelComparer
 							ODUSVPropertyReflectInfo(rObj, fObj, exceptionPropertyHash, listOfDifferences);
 						}
 
-						// Если проверяемый объект - ошиновка
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РѕС€РёРЅРѕРІРєР°
 						else if (reverseObject is BusArrangement)
 						{
 							BusArrangement rObj = reverseObject as BusArrangement;
@@ -844,7 +854,7 @@ namespace EMSModelComparer
 							ODUSVPropertyReflectInfo(rObj, fObj, exceptionPropertyHash, listOfDifferences);
 						}
 
-						// Если проверяемый объект - набор эксплуатационных ограничений		
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РЅР°Р±РѕСЂ СЌРєСЃРїР»СѓР°С‚Р°С†РёРѕРЅРЅС‹С… РѕРіСЂР°РЅРёС‡РµРЅРёР№		
 						else if (reverseObject is OperationalLimitSet)
 						{
 							OperationalLimitSet rObj = reverseObject as OperationalLimitSet;
@@ -852,7 +862,7 @@ namespace EMSModelComparer
 							ODUSVPropertyReflectInfo(rObj, fObj, exceptionPropertyHash, listOfDifferences);
 						}
 
-						// Если проверяемый объект - предел тока		
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РїСЂРµРґРµР» С‚РѕРєР°		
 						else if (reverseObject is CurrentLimit)
 						{
 							CurrentLimit cLRev = reverseObject as CurrentLimit;
@@ -862,7 +872,7 @@ namespace EMSModelComparer
 						}
 
 						//CurrentFlowUnbalanceLimit
-						// Если проверяемый объект - предел несимметрии токов фаз
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РїСЂРµРґРµР» РЅРµСЃРёРјРјРµС‚СЂРёРё С‚РѕРєРѕРІ С„Р°Р·
 						else if (reverseObject is CurrentFlowUnbalanceLimit)
 						{
 							CurrentFlowUnbalanceLimit cFULRev = reverseObject as CurrentFlowUnbalanceLimit;
@@ -871,7 +881,7 @@ namespace EMSModelComparer
 							ODUSVPropertyReflectInfo(cFULRev, cFULForw, exceptionPropertyHash, listOfDifferences);
 						}
 
-						// Если проверяемый объект - кривая зависимости тока от температуры
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РєСЂРёРІР°СЏ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё С‚РѕРєР° РѕС‚ С‚РµРјРїРµСЂР°С‚СѓСЂС‹
 						else if (reverseObject is CurrentVsTemperatureLimitCurve)
 						{
 							CurrentVsTemperatureLimitCurve cVTLCRev = reverseObject as CurrentVsTemperatureLimitCurve;
@@ -881,7 +891,7 @@ namespace EMSModelComparer
 						}
 
 						//PotentialTransformer
-						// Если проверяемый объект - трансформатор напряжения
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - С‚СЂР°РЅСЃС„РѕСЂРјР°С‚РѕСЂ РЅР°РїСЂСЏР¶РµРЅРёСЏ
 						else if (reverseObject is PotentialTransformer)
 						{
 							PotentialTransformer pTRev = reverseObject as PotentialTransformer;
@@ -891,7 +901,7 @@ namespace EMSModelComparer
 						}
 
 						// PotentialTransformerWinding
-						// Если проверяемый объект - обмотка трансформатора напряжения
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РѕР±РјРѕС‚РєР° С‚СЂР°РЅСЃС„РѕСЂРјР°С‚РѕСЂР° РЅР°РїСЂСЏР¶РµРЅРёСЏ
 						else if (reverseObject is PotentialTransformerWinding)
 						{
 							PotentialTransformerWinding pTWRev = reverseObject as PotentialTransformerWinding;
@@ -901,7 +911,7 @@ namespace EMSModelComparer
 						}
 
 						// Terminal
-						// Если проверяемый объект - полюс оборудования
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РїРѕР»СЋСЃ РѕР±РѕСЂСѓРґРѕРІР°РЅРёСЏ
 						else if (reverseObject is Terminal)
 						{
 							Terminal tRev = reverseObject as Terminal;
@@ -911,7 +921,7 @@ namespace EMSModelComparer
 						}
 
 						// WaveTrap
-						// Если проверяемый объект - ВЧЗ заградитель
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - Р’Р§Р— Р·Р°РіСЂР°РґРёС‚РµР»СЊ
 						else if (reverseObject is WaveTrap)
 						{
 							WaveTrap wTRev = reverseObject as WaveTrap;
@@ -921,7 +931,7 @@ namespace EMSModelComparer
 						}
 
 						// Breaker
-						// Если проверяемый объект - выключатель
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РІС‹РєР»СЋС‡Р°С‚РµР»СЊ
 						else if (reverseObject is Breaker)
 						{
 							Breaker bRev = reverseObject as Breaker;
@@ -931,7 +941,7 @@ namespace EMSModelComparer
 						}
 
 						// AnalogValue
-						// Если проверяемый объект - аналоговое значение
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - Р°РЅР°Р»РѕРіРѕРІРѕРµ Р·РЅР°С‡РµРЅРёРµ
 						else if (reverseObject is AnalogValue)
 						{
 							AnalogValue aVRev = reverseObject as AnalogValue;
@@ -941,7 +951,7 @@ namespace EMSModelComparer
 						}
 
 						// DiscreteValue
-						// Если проверяемый объект - дискретное значение
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РґРёСЃРєСЂРµС‚РЅРѕРµ Р·РЅР°С‡РµРЅРёРµ
 						else if (reverseObject is DiscreteValue)
 						{
 							DiscreteValue dVRev = reverseObject as DiscreteValue;
@@ -951,7 +961,7 @@ namespace EMSModelComparer
 						}
 
 						// CurrentTransformer
-						// Если проверяемый объект - трансформатор тока
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - С‚СЂР°РЅСЃС„РѕСЂРјР°С‚РѕСЂ С‚РѕРєР°
 						else if (reverseObject is CurrentTransformer)
 						{
 							CurrentTransformer cTRev = reverseObject as CurrentTransformer;
@@ -961,7 +971,7 @@ namespace EMSModelComparer
 						}
 
 						// CurrentTransformerWinding
-						// Если проверяемый объект - обмотка трансформатора тока
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РѕР±РјРѕС‚РєР° С‚СЂР°РЅСЃС„РѕСЂРјР°С‚РѕСЂР° С‚РѕРєР°
 						else if (reverseObject is CurrentTransformerWinding)
 						{
 							CurrentTransformerWinding cTWRev = reverseObject as CurrentTransformerWinding;
@@ -971,7 +981,7 @@ namespace EMSModelComparer
 						}
 
 						// Disconnector
-						// Если проверяемый объект - разъединитель
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - СЂР°Р·СЉРµРґРёРЅРёС‚РµР»СЊ
 						else if (reverseObject is Disconnector)
 						{
 							Disconnector dRev = reverseObject as Disconnector;
@@ -981,7 +991,7 @@ namespace EMSModelComparer
 						}
 
 						// Line
-						// Если проверяемый объект - ЛЭП
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - Р›Р­Рџ
 						else if (reverseObject is Line)
 						{
 							Line lRev = reverseObject as Line;
@@ -991,7 +1001,7 @@ namespace EMSModelComparer
 						}
 
 						// PowerTransformer
-						// Если проверяемый объект - силовой трансформатор
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - СЃРёР»РѕРІРѕР№ С‚СЂР°РЅСЃС„РѕСЂРјР°С‚РѕСЂ
 						else if (reverseObject is PowerTransformer)
 						{
 							PowerTransformer pTRev = reverseObject as PowerTransformer;
@@ -1001,7 +1011,7 @@ namespace EMSModelComparer
 						}
 
 						// PowerTransformerEnd
-						// Если проверяемый объект - обмотка трансформатора
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РѕР±РјРѕС‚РєР° С‚СЂР°РЅСЃС„РѕСЂРјР°С‚РѕСЂР°
 						else if (reverseObject is PowerTransformerEnd)
 						{
 							PowerTransformerEnd pTERev = reverseObject as PowerTransformerEnd;
@@ -1011,7 +1021,7 @@ namespace EMSModelComparer
 						}
 
 						// CurrentVsTapStepLimitCurve
-						// Если проверяемый объект - кривая зависимости тока от регулировачного ответвления
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РєСЂРёРІР°СЏ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё С‚РѕРєР° РѕС‚ СЂРµРіСѓР»РёСЂРѕРІР°С‡РЅРѕРіРѕ РѕС‚РІРµС‚РІР»РµРЅРёСЏ
 						else if (reverseObject is CurrentVsTapStepLimitCurve)
 						{
 							CurrentVsTapStepLimitCurve cVTSLCRev = reverseObject as CurrentVsTapStepLimitCurve;
@@ -1021,7 +1031,7 @@ namespace EMSModelComparer
 						}
 
 						// RatioTapChanger
-						// Если проверяемый объект - ПБВ/РПН
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РџР‘Р’/Р РџРќ
 						else if (reverseObject is RatioTapChanger)
 						{
 							RatioTapChanger rTCRev = reverseObject as RatioTapChanger;
@@ -1031,7 +1041,7 @@ namespace EMSModelComparer
 						}
 
 						// TransformerMeshImpedance
-						// Если проверяемый объект - трансформаторная ветвь многоугольника
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - С‚СЂР°РЅСЃС„РѕСЂРјР°С‚РѕСЂРЅР°СЏ РІРµС‚РІСЊ РјРЅРѕРіРѕСѓРіРѕР»СЊРЅРёРєР°
 						else if (reverseObject is TransformerMeshImpedance)
 						{
 							TransformerMeshImpedance tMIRev = reverseObject as TransformerMeshImpedance;
@@ -1041,7 +1051,7 @@ namespace EMSModelComparer
 						}
 
 						// LoadSheddingEquipment
-						// Если проверяемый объект - автоматика ограничения потребления
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - Р°РІС‚РѕРјР°С‚РёРєР° РѕРіСЂР°РЅРёС‡РµРЅРёСЏ РїРѕС‚СЂРµР±Р»РµРЅРёСЏ
 						else if (reverseObject is LoadSheddingEquipment)
 						{
 							LoadSheddingEquipment lSERev = reverseObject as LoadSheddingEquipment;
@@ -1051,7 +1061,7 @@ namespace EMSModelComparer
 						}
 
 						// GenericPSR
-						// Если проверяемый объект - прочий энергообъект
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РїСЂРѕС‡РёР№ СЌРЅРµСЂРіРѕРѕР±СЉРµРєС‚
 						else if (reverseObject is GenericPSR)
 						{
 							GenericPSR gPSRRev = reverseObject as GenericPSR;
@@ -1061,7 +1071,7 @@ namespace EMSModelComparer
 						}
 
 						// GenerationUnloadingStage
-						// Если проверяемый объект - ступень ОГ
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - СЃС‚СѓРїРµРЅСЊ РћР“
 						else if (reverseObject is GenerationUnloadingStage)
 						{
 							GenerationUnloadingStage gUSRev = reverseObject as GenerationUnloadingStage;
@@ -1071,7 +1081,7 @@ namespace EMSModelComparer
 						}
 
 						// LoadSheddingStage
-						// Если проверяемый объект - ступень ОН
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - СЃС‚СѓРїРµРЅСЊ РћРќ
 						else if (reverseObject is LoadSheddingStage)
 						{
 							LoadSheddingStage lSSRev = reverseObject as LoadSheddingStage;
@@ -1081,7 +1091,7 @@ namespace EMSModelComparer
 						}
 
 						// LimitExpression
-						// Если проверяемый объект - выражение эксплуатационного ограничения
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РІС‹СЂР°Р¶РµРЅРёРµ СЌРєСЃРїР»СѓР°С‚Р°С†РёРѕРЅРЅРѕРіРѕ РѕРіСЂР°РЅРёС‡РµРЅРёСЏ
 						else if (reverseObject is LimitExpression)
 						{
 							LimitExpression lERev = reverseObject as LimitExpression;
@@ -1091,7 +1101,7 @@ namespace EMSModelComparer
 						}
 
 						// PSRMeasOperand
-						// Если проверяемый объект - операнд измерения энергообъекта
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РѕРїРµСЂР°РЅРґ РёР·РјРµСЂРµРЅРёСЏ СЌРЅРµСЂРіРѕРѕР±СЉРµРєС‚Р°
 						else if (reverseObject is PSRMeasOperand)
 						{
 							PSRMeasOperand pSRMORev = reverseObject as PSRMeasOperand;
@@ -1101,7 +1111,7 @@ namespace EMSModelComparer
 						}
 
 						// PEStageSetpoint
-						// Если проверяемый объект - уставка ступени РЗА
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - СѓСЃС‚Р°РІРєР° СЃС‚СѓРїРµРЅРё Р Р—Рђ
 						else if (reverseObject is PEStageSetpoint)
 						{
 							PEStageSetpoint pESSRev = reverseObject as PEStageSetpoint;
@@ -1111,7 +1121,7 @@ namespace EMSModelComparer
 						}
 
 						// WeatherStation
-						// Если проверяемый объект - метеостанция
+						// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - РјРµС‚РµРѕСЃС‚Р°РЅС†РёСЏ
 						else if (reverseObject is WeatherStation)
 						{
 							WeatherStation wSRev = reverseObject as WeatherStation;
@@ -1127,7 +1137,7 @@ namespace EMSModelComparer
 						try
 						{
 							// PEStageSetpoint
-							// Если проверяемый объект - уставка ступени РЗА
+							// Р•СЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚ - СѓСЃС‚Р°РІРєР° СЃС‚СѓРїРµРЅРё Р Р—Рђ
 							var reversPESetpoint = reverseModelImage.GetObject<PEStageSetpoint>(uid);
 
 							if (reversPESetpoint != null)
@@ -1144,21 +1154,21 @@ namespace EMSModelComparer
 
 				}
 
-				// Рефлекся. Метод перебирает все свойства класса
+				// Р РµС„Р»РµРєСЃСЏ. РњРµС‚РѕРґ РїРµСЂРµР±РёСЂР°РµС‚ РІСЃРµ СЃРІРѕР№СЃС‚РІР° РєР»Р°СЃСЃР°
 				void ODUSVPropertyReflectInfo<T>(T objRev, T objForw, HashSet<string> exHash, List<string> listOfDiffs) where T : class
 				{
-					// В переменную задается тип выбранного объекта
+					// Р’ РїРµСЂРµРјРµРЅРЅСѓСЋ Р·Р°РґР°РµС‚СЃСЏ С‚РёРї РІС‹Р±СЂР°РЅРЅРѕРіРѕ РѕР±СЉРµРєС‚Р°
 					Type t = typeof(T);
 
-					// В переменную заносятся все реализуемые выбранным классом интерфейсы
+					// Р’ РїРµСЂРµРјРµРЅРЅСѓСЋ Р·Р°РЅРѕСЃСЏС‚СЃСЏ РІСЃРµ СЂРµР°Р»РёР·СѓРµРјС‹Рµ РІС‹Р±СЂР°РЅРЅС‹Рј РєР»Р°СЃСЃРѕРј РёРЅС‚РµСЂС„РµР№СЃС‹
 					var interfaces = t.GetInterfaces();
-					// Циклический проход по всем интерфейсам
+					// Р¦РёРєР»РёС‡РµСЃРєРёР№ РїСЂРѕС…РѕРґ РїРѕ РІСЃРµРј РёРЅС‚РµСЂС„РµР№СЃР°Рј
 					foreach (Type interf in interfaces)
 					{
-						// Дальнейшую обработку проходят все интерфейсы, кроме IMalObject
+						// Р”Р°Р»СЊРЅРµР№С€СѓСЋ РѕР±СЂР°Р±РѕС‚РєСѓ РїСЂРѕС…РѕРґСЏС‚ РІСЃРµ РёРЅС‚РµСЂС„РµР№СЃС‹, РєСЂРѕРјРµ IMalObject
 						if (interf.Name != "IMalObject")
 						{
-							// Циклический проход по всем свойствам выбранного интерфейса
+							// Р¦РёРєР»РёС‡РµСЃРєРёР№ РїСЂРѕС…РѕРґ РїРѕ РІСЃРµРј СЃРІРѕР№СЃС‚РІР°Рј РІС‹Р±СЂР°РЅРЅРѕРіРѕ РёРЅС‚РµСЂС„РµР№СЃР°
 							foreach (System.Reflection.PropertyInfo prop in interf.GetProperties())
 							{
 								ODUSVCheckingIdentityOfProperty(exHash, listOfDiffs, objRev, objForw, prop);
@@ -1167,63 +1177,63 @@ namespace EMSModelComparer
 
 					}
 
-					// В переменную заносятся все имеющиеся у выбранного класса свойства (только
-					// те, что имеются у этого класса, а не наследуются)
+					// Р’ РїРµСЂРµРјРµРЅРЅСѓСЋ Р·Р°РЅРѕСЃСЏС‚СЃСЏ РІСЃРµ РёРјРµСЋС‰РёРµСЃСЏ Сѓ РІС‹Р±СЂР°РЅРЅРѕРіРѕ РєР»Р°СЃСЃР° СЃРІРѕР№СЃС‚РІР° (С‚РѕР»СЊРєРѕ
+					// С‚Рµ, С‡С‚Рѕ РёРјРµСЋС‚СЃСЏ Сѓ СЌС‚РѕРіРѕ РєР»Р°СЃСЃР°, Р° РЅРµ РЅР°СЃР»РµРґСѓСЋС‚СЃСЏ)
 					System.Reflection.PropertyInfo[] propNames = t.GetProperties();
 
-					// Циклический проход по всем свойствам выбранного класса
+					// Р¦РёРєР»РёС‡РµСЃРєРёР№ РїСЂРѕС…РѕРґ РїРѕ РІСЃРµРј СЃРІРѕР№СЃС‚РІР°Рј РІС‹Р±СЂР°РЅРЅРѕРіРѕ РєР»Р°СЃСЃР°
 					foreach (System.Reflection.PropertyInfo prop in propNames)
 					{
 						ODUSVCheckingIdentityOfProperty(exHash, listOfDiffs, objRev, objForw, prop);
 					}
 				}
 
-				// Метод проверки идентичности свойства у двух объектов ИМ
+				// РњРµС‚РѕРґ РїСЂРѕРІРµСЂРєРё РёРґРµРЅС‚РёС‡РЅРѕСЃС‚Рё СЃРІРѕР№СЃС‚РІР° Сѓ РґРІСѓС… РѕР±СЉРµРєС‚РѕРІ РРњ
 				void ODUSVCheckingIdentityOfProperty<T>(HashSet<string> _exHash, List<string> _listOfDiffs, T _objRev, T _objForw, System.Reflection.PropertyInfo _prop) where T : class
 				{
 					try
 					{
-						// В переменную задается тип выбранного объекта
+						// Р’ РїРµСЂРµРјРµРЅРЅСѓСЋ Р·Р°РґР°РµС‚СЃСЏ С‚РёРї РІС‹Р±СЂР°РЅРЅРѕРіРѕ РѕР±СЉРµРєС‚Р°
 						Type t = typeof(T);
 
-						// Проверка отсуствия выбранного свойства в списке исключений
+						// РџСЂРѕРІРµСЂРєР° РѕС‚СЃСѓСЃС‚РІРёСЏ РІС‹Р±СЂР°РЅРЅРѕРіРѕ СЃРІРѕР№СЃС‚РІР° РІ СЃРїРёСЃРєРµ РёСЃРєР»СЋС‡РµРЅРёР№
 						if (_exHash.Contains(_prop.Name) != true)
 						{
-							// В переменную задается значение проверяемого свойства выбранного объекта
+							// Р’ РїРµСЂРµРјРµРЅРЅСѓСЋ Р·Р°РґР°РµС‚СЃСЏ Р·РЅР°С‡РµРЅРёРµ РїСЂРѕРІРµСЂСЏРµРјРѕРіРѕ СЃРІРѕР№СЃС‚РІР° РІС‹Р±СЂР°РЅРЅРѕРіРѕ РѕР±СЉРµРєС‚Р°
 							var vals = _prop.GetValue(_objRev);
 							var valsForw = _prop.GetValue(_objForw);
 
-							// Если выбранное свойство содержит массив данных, то выполняется обработка массива
+							// Р•СЃР»Рё РІС‹Р±СЂР°РЅРЅРѕРµ СЃРІРѕР№СЃС‚РІРѕ СЃРѕРґРµСЂР¶РёС‚ РјР°СЃСЃРёРІ РґР°РЅРЅС‹С…, С‚Рѕ РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ РѕР±СЂР°Р±РѕС‚РєР° РјР°СЃСЃРёРІР°
 							if (vals is Array)
 							{
-								// Если выбранное свойство - это объект типа System.Byte[], 
-								// то выполняется проверка объекта на принадлежность к классу Curve
+								// Р•СЃР»Рё РІС‹Р±СЂР°РЅРЅРѕРµ СЃРІРѕР№СЃС‚РІРѕ - СЌС‚Рѕ РѕР±СЉРµРєС‚ С‚РёРїР° System.Byte[], 
+								// С‚Рѕ РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ РїСЂРѕРІРµСЂРєР° РѕР±СЉРµРєС‚Р° РЅР° РїСЂРёРЅР°РґР»РµР¶РЅРѕСЃС‚СЊ Рє РєР»Р°СЃСЃСѓ Curve
 								if (_prop.PropertyType.ToString() == "System.Byte[]" && _objRev is Curve)
 								{
-									// Получаем точки каждой кривой в обеих моделях
+									// РџРѕР»СѓС‡Р°РµРј С‚РѕС‡РєРё РєР°Р¶РґРѕР№ РєСЂРёРІРѕР№ РІ РѕР±РµРёС… РјРѕРґРµР»СЏС…
 									var curvePointsRev = (_objRev as Curve).GetCurvePoints();
 									var curvePointsForw = (_objForw as Curve).GetCurvePoints();
 
 									string stringOfPointsRev = String.Empty;
 									string stringOfPointsForw = String.Empty;
 
-									// По аналогии с проверкой связи один ко многим создаем из координат точек сплошные строки и сравниваем их
+									// РџРѕ Р°РЅР°Р»РѕРіРёРё СЃ РїСЂРѕРІРµСЂРєРѕР№ СЃРІСЏР·Рё РѕРґРёРЅ РєРѕ РјРЅРѕРіРёРј СЃРѕР·РґР°РµРј РёР· РєРѕРѕСЂРґРёРЅР°С‚ С‚РѕС‡РµРє СЃРїР»РѕС€РЅС‹Рµ СЃС‚СЂРѕРєРё Рё СЃСЂР°РІРЅРёРІР°РµРј РёС…
 									for (int i = 0; i < curvePointsRev.xvalue.Count(); i++)
 									{ stringOfPointsRev = stringOfPointsRev + curvePointsRev.xvalue[i] + curvePointsRev.y1value[i]; }
 									for (int i = 0; i < curvePointsForw.xvalue.Count(); i++)
 									{ stringOfPointsForw = stringOfPointsForw + curvePointsForw.xvalue[i] + curvePointsForw.y1value[i]; }
 
 									if (stringOfPointsRev != stringOfPointsForw)
-										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
-												"' изменилось значение в свойстве '" + _prop.Name + "'. Было " + "points1" + ", стало " +
+										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";РР·РјРµРЅРµРЅРёРµ;РЈ РѕР±СЉРµРєС‚Р° РєР»Р°СЃСЃР° '" + t.ToString() +
+												"' РёР·РјРµРЅРёР»РѕСЃСЊ Р·РЅР°С‡РµРЅРёРµ РІ СЃРІРѕР№СЃС‚РІРµ '" + _prop.Name + "'. Р‘С‹Р»Рѕ " + "points1" + ", СЃС‚Р°Р»Рѕ " +
 												"points2" + ";" + ODUSVGetObjectName(_objRev) + ";" +
 												(_objRev as IdentifiedObject).ClassName() + ";" + ODUSVGetModelingAuthoritySet(_objRev));
 								}
 
 								else if (_prop.PropertyType.ToString() == "Monitel.Mal.Context.CIM16.BranchGroupTerminal[]" && _objRev is Terminal)
 								{
-									// ПЕРЕПИСАТЬ В ОТДЕЛЬНЫЙ МЕТОД
-									// Добавление UID'ов объектов в сортированный список
+									// РџР•Р Р•РџРРЎРђРўР¬ Р’ РћРўР”Р•Р›Р¬РќР«Р™ РњР•РўРћР”
+									// Р”РѕР±Р°РІР»РµРЅРёРµ UID'РѕРІ РѕР±СЉРµРєС‚РѕРІ РІ СЃРѕСЂС‚РёСЂРѕРІР°РЅРЅС‹Р№ СЃРїРёСЃРѕРє
 									SortedList<string, string> reverseList = new SortedList<string, string>();
 									SortedList<string, string> forwardList = new SortedList<string, string>();
 
@@ -1236,7 +1246,7 @@ namespace EMSModelComparer
 										forwardList.Add(val.Uid.ToString(), val.Uid.ToString());
 									}
 
-									// Составление строк идентификаторов у каждого из проверяемых объектов
+									// РЎРѕСЃС‚Р°РІР»РµРЅРёРµ СЃС‚СЂРѕРє РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂРѕРІ Сѓ РєР°Р¶РґРѕРіРѕ РёР· РїСЂРѕРІРµСЂСЏРµРјС‹С… РѕР±СЉРµРєС‚РѕРІ
 									string reverseCode = "";
 									string forwardCode = "";
 									foreach (string str in reverseList.Keys)
@@ -1249,27 +1259,27 @@ namespace EMSModelComparer
 									}
 
 									if (reverseCode != forwardCode)
-										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
-											"' изменилась связь " + _prop.Name + ";" + ODUSVGetObjectName(_objRev) + ";" +
+										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";РР·РјРµРЅРµРЅРёРµ;РЈ РѕР±СЉРµРєС‚Р° РєР»Р°СЃСЃР° '" + t.ToString() +
+											"' РёР·РјРµРЅРёР»Р°СЃСЊ СЃРІСЏР·СЊ " + _prop.Name + ";" + ODUSVGetObjectName(_objRev) + ";" +
 											(_objRev as IdentifiedObject).ClassName() + ";" + ODUSVGetModelingAuthoritySet(_objRev));
 								}
 
 								else
 								{
-									// Проверка значений в обеих моделях на null
+									// РџСЂРѕРІРµСЂРєР° Р·РЅР°С‡РµРЅРёР№ РІ РѕР±РµРёС… РјРѕРґРµР»СЏС… РЅР° null
 									if (_prop.GetValue(_objRev) == null && _prop.GetValue(_objForw) != null)
-										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
-										"' изменилась связь " + _prop.Name + ";" + (_objRev as IdentifiedObject).name + ";" + (_objRev as IdentifiedObject).ClassName() +
+										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";РР·РјРµРЅРµРЅРёРµ;РЈ РѕР±СЉРµРєС‚Р° РєР»Р°СЃСЃР° '" + t.ToString() +
+										"' РёР·РјРµРЅРёР»Р°СЃСЊ СЃРІСЏР·СЊ " + _prop.Name + ";" + (_objRev as IdentifiedObject).name + ";" + (_objRev as IdentifiedObject).ClassName() +
 										";" + ODUSVGetModelingAuthoritySet(_objRev));
 
 									if (_prop.GetValue(_objRev) != null && _prop.GetValue(_objForw) == null)
-										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
-										"' изменилась связь " + _prop.Name + ";" + ODUSVGetObjectName(_objRev) + ";" +
+										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";РР·РјРµРЅРµРЅРёРµ;РЈ РѕР±СЉРµРєС‚Р° РєР»Р°СЃСЃР° '" + t.ToString() +
+										"' РёР·РјРµРЅРёР»Р°СЃСЊ СЃРІСЏР·СЊ " + _prop.Name + ";" + ODUSVGetObjectName(_objRev) + ";" +
 										(_objRev as IdentifiedObject).ClassName() + ";" + ODUSVGetModelingAuthoritySet(_objRev));
 
 									if (_prop.GetValue(_objRev) != null && _prop.GetValue(_objForw) != null)
 									{
-										// Добавление UID'ов объектов в сортированный список
+										// Р”РѕР±Р°РІР»РµРЅРёРµ UID'РѕРІ РѕР±СЉРµРєС‚РѕРІ РІ СЃРѕСЂС‚РёСЂРѕРІР°РЅРЅС‹Р№ СЃРїРёСЃРѕРє
 										SortedList<string, string> reverseList = new SortedList<string, string>();
 										SortedList<string, string> forwardList = new SortedList<string, string>();
 
@@ -1282,7 +1292,7 @@ namespace EMSModelComparer
 											forwardList.Add(val.Uid.ToString(), val.Uid.ToString());
 										}
 
-										// Составление строк идентификаторов у каждого из проверяемых объектов
+										// РЎРѕСЃС‚Р°РІР»РµРЅРёРµ СЃС‚СЂРѕРє РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂРѕРІ Сѓ РєР°Р¶РґРѕРіРѕ РёР· РїСЂРѕРІРµСЂСЏРµРјС‹С… РѕР±СЉРµРєС‚РѕРІ
 										string reverseCode = "";
 										string forwardCode = "";
 										foreach (string str in reverseList.Keys)
@@ -1295,34 +1305,34 @@ namespace EMSModelComparer
 										}
 
 										if (reverseCode != forwardCode)
-											_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
-												"' изменилась связь " + _prop.Name + ";" + ODUSVGetObjectName(_objRev) + ";" +
+											_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";РР·РјРµРЅРµРЅРёРµ;РЈ РѕР±СЉРµРєС‚Р° РєР»Р°СЃСЃР° '" + t.ToString() +
+												"' РёР·РјРµРЅРёР»Р°СЃСЊ СЃРІСЏР·СЊ " + _prop.Name + ";" + ODUSVGetObjectName(_objRev) + ";" +
 												(_objRev as IdentifiedObject).ClassName() + ";" + ODUSVGetModelingAuthoritySet(_objRev));
 									}
 								}
 							}
-							// Если выбранное свойство - это не массив данных
+							// Р•СЃР»Рё РІС‹Р±СЂР°РЅРЅРѕРµ СЃРІРѕР№СЃС‚РІРѕ - СЌС‚Рѕ РЅРµ РјР°СЃСЃРёРІ РґР°РЅРЅС‹С…
 							else
 							{
-								// Если выбранное свойство строковое, числовое или булево
+								// Р•СЃР»Рё РІС‹Р±СЂР°РЅРЅРѕРµ СЃРІРѕР№СЃС‚РІРѕ СЃС‚СЂРѕРєРѕРІРѕРµ, С‡РёСЃР»РѕРІРѕРµ РёР»Рё Р±СѓР»РµРІРѕ
 								if (_prop.PropertyType.ToString() == "System.String" || _prop.PropertyType.ToString() == "System.Boolean" ||
 											_prop.PropertyType.ToString() == "System.Nullable`1[System.Double]" || _prop.PropertyType.ToString() == "System.Double"
 											|| _prop.PropertyType.ToString() == "System.Int32" || _prop.PropertyType.ToString() == "System.Int64")
 								{
 
-									// Проверка значений в обеих моделях на null
+									// РџСЂРѕРІРµСЂРєР° Р·РЅР°С‡РµРЅРёР№ РІ РѕР±РµРёС… РјРѕРґРµР»СЏС… РЅР° null
 									if (_prop.GetValue(_objRev) == null && _prop.GetValue(_objForw) != null)
 									{
-										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
-										"' изменилось значение в свойстве '" + _prop.Name + "'. Было 'не задан'" + ", стало " + _prop.GetValue(_objForw).ToString().Replace("\r\n", "").Replace("\n", "") +
+										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";РР·РјРµРЅРµРЅРёРµ;РЈ РѕР±СЉРµРєС‚Р° РєР»Р°СЃСЃР° '" + t.ToString() +
+										"' РёР·РјРµРЅРёР»РѕСЃСЊ Р·РЅР°С‡РµРЅРёРµ РІ СЃРІРѕР№СЃС‚РІРµ '" + _prop.Name + "'. Р‘С‹Р»Рѕ 'РЅРµ Р·Р°РґР°РЅ'" + ", СЃС‚Р°Р»Рѕ " + _prop.GetValue(_objForw).ToString().Replace("\r\n", "").Replace("\n", "") +
 										";" + (_objRev as IdentifiedObject).name + ";" + (_objRev as IdentifiedObject).ClassName() + ";" +
 										ODUSVGetModelingAuthoritySet(_objRev));
 									}
 									else if (_prop.GetValue(_objRev) != null && _prop.GetValue(_objForw) == null)
 									{
 										if ((_objRev as IdentifiedObject).Uid == new Guid("A8DFF2C0-68F3-4F97-B0AE-58ABAE838B00")) MessageBox.Show(_prop.Name + " = " + _prop.GetValue(_objRev));
-										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
-										"' изменилось значение в свойстве '" + _prop.Name + "'. Было " + _prop.GetValue(_objRev).ToString().Replace("\r\n", "").Replace("\n", "") + ", стало 'не задан'" +
+										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";РР·РјРµРЅРµРЅРёРµ;РЈ РѕР±СЉРµРєС‚Р° РєР»Р°СЃСЃР° '" + t.ToString() +
+										"' РёР·РјРµРЅРёР»РѕСЃСЊ Р·РЅР°С‡РµРЅРёРµ РІ СЃРІРѕР№СЃС‚РІРµ '" + _prop.Name + "'. Р‘С‹Р»Рѕ " + _prop.GetValue(_objRev).ToString().Replace("\r\n", "").Replace("\n", "") + ", СЃС‚Р°Р»Рѕ 'РЅРµ Р·Р°РґР°РЅ'" +
 										";" + (_objRev as IdentifiedObject).name + ";" + (_objRev as IdentifiedObject).ClassName() + ";" +
 										ODUSVGetModelingAuthoritySet(_objRev));
 									}
@@ -1331,27 +1341,27 @@ namespace EMSModelComparer
 										if (_prop.GetValue(_objRev).ToString() != _prop.GetValue(_objForw).ToString())
 										{
 											if (_objRev is IdentifiedObject && _objForw is IdentifiedObject)
-												_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
-												"' изменилось значение в свойстве '" + _prop.Name + "'. Было " + _prop.GetValue(_objRev).ToString().Replace("\r\n", "").Replace("\n", "") + ", стало " +
+												_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";РР·РјРµРЅРµРЅРёРµ;РЈ РѕР±СЉРµРєС‚Р° РєР»Р°СЃСЃР° '" + t.ToString() +
+												"' РёР·РјРµРЅРёР»РѕСЃСЊ Р·РЅР°С‡РµРЅРёРµ РІ СЃРІРѕР№СЃС‚РІРµ '" + _prop.Name + "'. Р‘С‹Р»Рѕ " + _prop.GetValue(_objRev).ToString().Replace("\r\n", "").Replace("\n", "") + ", СЃС‚Р°Р»Рѕ " +
 												_prop.GetValue(_objForw).ToString().Replace("\r\n", "").Replace("\n", "") + ";" + (_objRev as IdentifiedObject).name + ";" + (_objRev as IdentifiedObject).ClassName() +
 												";" + ODUSVGetModelingAuthoritySet(_objRev));
 											else
-												_listOfDiffs.Add(Convert.ToString((_objRev as IMalObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
-												"' изменилось значение в свойстве '" + _prop.Name + "'. Было " + _prop.GetValue(_objRev).ToString().Replace("\r\n", "").Replace("\n", "") + ", стало " +
+												_listOfDiffs.Add(Convert.ToString((_objRev as IMalObject).Uid) + ";РР·РјРµРЅРµРЅРёРµ;РЈ РѕР±СЉРµРєС‚Р° РєР»Р°СЃСЃР° '" + t.ToString() +
+												"' РёР·РјРµРЅРёР»РѕСЃСЊ Р·РЅР°С‡РµРЅРёРµ РІ СЃРІРѕР№СЃС‚РІРµ '" + _prop.Name + "'. Р‘С‹Р»Рѕ " + _prop.GetValue(_objRev).ToString().Replace("\r\n", "").Replace("\n", "") + ", СЃС‚Р°Р»Рѕ " +
 												_prop.GetValue(_objForw).ToString().Replace("\r\n", "").Replace("\n", "") + ";" + (_objRev as IMalObject).ClassName()/*name*/ + ";" + (_objRev as IMalObject).ClassName() +
 												";" + ODUSVGetModelingAuthoritySet(_objRev));
 										}
 									}
 								}
 
-								// Если выбранное свойство - это объект какого-то класса
+								// Р•СЃР»Рё РІС‹Р±СЂР°РЅРЅРѕРµ СЃРІРѕР№СЃС‚РІРѕ - СЌС‚Рѕ РѕР±СЉРµРєС‚ РєР°РєРѕРіРѕ-С‚Рѕ РєР»Р°СЃСЃР°
 								else
 								{
-									// Проверка значений в обеих моделях на null
+									// РџСЂРѕРІРµСЂРєР° Р·РЅР°С‡РµРЅРёР№ РІ РѕР±РµРёС… РјРѕРґРµР»СЏС… РЅР° null
 									if (_prop.GetValue(_objRev) == null && _prop.GetValue(_objForw) != null)
 									{
 										string line = "";
-										// Проверка на полюс
+										// РџСЂРѕРІРµСЂРєР° РЅР° РїРѕР»СЋСЃ
 										if (valsForw is Terminal)
 										{
 											line = ODUSVGetObjectName(valsForw);
@@ -1363,22 +1373,22 @@ namespace EMSModelComparer
 										}
 										else line = ODUSVGetObjectName(valsForw);
 
-										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
-										"' изменилось значение в свойстве '" + _prop.Name + "'. Было 'не задан'" + ", стало " + line +
+										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";РР·РјРµРЅРµРЅРёРµ;РЈ РѕР±СЉРµРєС‚Р° РєР»Р°СЃСЃР° '" + t.ToString() +
+										"' РёР·РјРµРЅРёР»РѕСЃСЊ Р·РЅР°С‡РµРЅРёРµ РІ СЃРІРѕР№СЃС‚РІРµ '" + _prop.Name + "'. Р‘С‹Р»Рѕ 'РЅРµ Р·Р°РґР°РЅ'" + ", СЃС‚Р°Р»Рѕ " + line +
 										";" + ODUSVGetObjectName(_objRev) + ";" + (_objRev as IdentifiedObject).ClassName() + ";" +
 										ODUSVGetModelingAuthoritySet(_objRev));
 									}
 									else if (_prop.GetValue(_objRev) != null && _prop.GetValue(_objForw) == null)
 									{
 										string line = "";
-										// Проверка на полюс
+										// РџСЂРѕРІРµСЂРєР° РЅР° РїРѕР»СЋСЃ
 										if (vals is Terminal)
 											line = ODUSVGetObjectName(vals);
 										else if (vals is IdentifiedObject)
 											line = ODUSVGetObjectName(vals);
 										else line = ODUSVGetObjectName(vals);
-										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
-											"' изменилось значение в свойстве '" + _prop.Name + "'. Было " + line + ", стало 'не задан'" +
+										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";РР·РјРµРЅРµРЅРёРµ;РЈ РѕР±СЉРµРєС‚Р° РєР»Р°СЃСЃР° '" + t.ToString() +
+											"' РёР·РјРµРЅРёР»РѕСЃСЊ Р·РЅР°С‡РµРЅРёРµ РІ СЃРІРѕР№СЃС‚РІРµ '" + _prop.Name + "'. Р‘С‹Р»Рѕ " + line + ", СЃС‚Р°Р»Рѕ 'РЅРµ Р·Р°РґР°РЅ'" +
 											";" + ODUSVGetObjectName(_objRev) + ";" + (_objRev as IdentifiedObject).ClassName() + ";"
 											+ ODUSVGetModelingAuthoritySet(_objRev));
 									}
@@ -1387,7 +1397,7 @@ namespace EMSModelComparer
 									{
 										string line1 = "";
 										string line2 = "";
-										// Проверка на полюс
+										// РџСЂРѕРІРµСЂРєР° РЅР° РїРѕР»СЋСЃ
 										if (vals is Terminal)
 											line1 = ODUSVGetObjectName(vals);
 										else if (vals is IdentifiedObject)
@@ -1400,8 +1410,8 @@ namespace EMSModelComparer
 											line2 = ODUSVGetObjectName(valsForw);
 										else line2 = ODUSVGetObjectName(valsForw);
 
-										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
-												"' изменилось значение в свойстве '" + _prop.Name + "'. Было " + line1 + ", стало " +
+										_listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";РР·РјРµРЅРµРЅРёРµ;РЈ РѕР±СЉРµРєС‚Р° РєР»Р°СЃСЃР° '" + t.ToString() +
+												"' РёР·РјРµРЅРёР»РѕСЃСЊ Р·РЅР°С‡РµРЅРёРµ РІ СЃРІРѕР№СЃС‚РІРµ '" + _prop.Name + "'. Р‘С‹Р»Рѕ " + line1 + ", СЃС‚Р°Р»Рѕ " +
 												line2 + ";" + ODUSVGetObjectName(_objRev) + ";" + (_objRev as IdentifiedObject).ClassName() +
 												";" + ODUSVGetModelingAuthoritySet(_objRev));
 									}
@@ -1418,31 +1428,31 @@ namespace EMSModelComparer
 
 
 
-				// Метод определения имении объекта ИМ
+				// РњРµС‚РѕРґ РѕРїСЂРµРґРµР»РµРЅРёСЏ РёРјРµРЅРёРё РѕР±СЉРµРєС‚Р° РРњ
 				string ODUSVGetObjectName<T>(/*IMalObject*/T inputObject) where T : class
 				{
 					string result = String.Empty;
 					if (inputObject is IMalObject)
 					{
-						// Переопрделяем объект для дальнейшей работы
+						// РџРµСЂРµРѕРїСЂРґРµР»СЏРµРј РѕР±СЉРµРєС‚ РґР»СЏ РґР°Р»СЊРЅРµР№С€РµР№ СЂР°Р±РѕС‚С‹
 						IMalObject obj = inputObject as IMalObject;
 
-						// Если объект является именуемым объектом, но не полюсом и не точкой подключения
+						// Р•СЃР»Рё РѕР±СЉРµРєС‚ СЏРІР»СЏРµС‚СЃСЏ РёРјРµРЅСѓРµРјС‹Рј РѕР±СЉРµРєС‚РѕРј, РЅРѕ РЅРµ РїРѕР»СЋСЃРѕРј Рё РЅРµ С‚РѕС‡РєРѕР№ РїРѕРґРєР»СЋС‡РµРЅРёСЏ
 						if ((obj is IdentifiedObject) == true && (obj is Terminal) == false && (obj is ConnectivityNode) == false)
 						{
 							result = (obj as IdentifiedObject).name;
 						}
-						// Если объект является полюсом
+						// Р•СЃР»Рё РѕР±СЉРµРєС‚ СЏРІР»СЏРµС‚СЃСЏ РїРѕР»СЋСЃРѕРј
 						else if (obj is Terminal)
 						{
 							result = "T" + (obj as Terminal).sequenceNumber + " " + (obj as Terminal).ConductingEquipment.name;
 						}
-						// Если объект является именуемым объектом, но не полюсом и не точкой подключения
+						// Р•СЃР»Рё РѕР±СЉРµРєС‚ СЏРІР»СЏРµС‚СЃСЏ РёРјРµРЅСѓРµРјС‹Рј РѕР±СЉРµРєС‚РѕРј, РЅРѕ РЅРµ РїРѕР»СЋСЃРѕРј Рё РЅРµ С‚РѕС‡РєРѕР№ РїРѕРґРєР»СЋС‡РµРЅРёСЏ
 						else if (obj is ConnectivityNode)
 						{
 							result = "ConnectivityNode : " + obj.Id + " " + obj.Uid;
 						}
-						// Если объект не является именуемым
+						// Р•СЃР»Рё РѕР±СЉРµРєС‚ РЅРµ СЏРІР»СЏРµС‚СЃСЏ РёРјРµРЅСѓРµРјС‹Рј
 						else if ((obj is IdentifiedObject) == false)
 						{
 							result = Convert.ToString(obj.Uid);
@@ -1474,12 +1484,12 @@ namespace EMSModelComparer
 				}
 
 
-				//===========МОЁ (КОНЕЦ)===============================================================
+				//===========РњРћРЃ (РљРћРќР•Р¦)===============================================================
 
 
 
 				dynamic dockLayoutManager = (MainWindow.Content as System.Windows.Controls.Grid).Children[2];
-				var dockingAssemName = "DevExpress.Xpf.Docking.v21.2, Version=21.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a";
+				var dockingAssemName = "DevExpress.Xpf.Docking.v21.1, Version=21.1.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a";
 				System.Reflection.Assembly dockingAssem = System.Reflection.Assembly.Load(dockingAssemName);
 
 
@@ -1536,7 +1546,7 @@ namespace EMSModelComparer
 				}
 
 				dynamic scriptWindow = Activator.CreateInstance(layoutPanelType);
-				scriptWindow.Caption = "Сравнение моделей EMS";
+				scriptWindow.Caption = "РЎСЂР°РІРЅРµРЅРёРµ РјРѕРґРµР»РµР№ EMS";
 				scriptWindow.Content = scroll;
 				scriptWindow.ItemWidth = new System.Windows.GridLength(407);
 
@@ -1562,7 +1572,6 @@ namespace EMSModelComparer
 
 			}
 			catch (Exception ex) { MessageBox.Show(ex.Message); }
-
 		}
-	}
+    }
 }
