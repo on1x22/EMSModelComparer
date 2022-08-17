@@ -5,8 +5,100 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EMSModelComparer"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="WorkWindow" Height="350" Width="400">
     <Grid>
-        
+        <StackPanel Name="mainStackPanel">
+            <GroupBox Name="grBoxOrganisation" IsEnabled="True" Header="Настройки организации и роли" Margin="5,5,5,5">
+                <StackPanel Name="orgStackPanel">
+                    <Grid Name="organisationGrid" ShowGridLines="False" Margin="5,5,5,0" HorizontalAlignment="Stretch">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Name="textBlockOrganisation" Grid.Column="0" Grid.Row="0" IsEnabled="True" Text="Организация (UID): "/>
+                        <TextBox Name="textBoxOrganisation" Grid.Column="1" Grid.Row="0" IsEnabled="True" />
+                    </Grid>
+                    <Grid Name="roleGrid" ShowGridLines="False" Margin="5,5,5,0" HorizontalAlignment="Stretch">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Name="textBlockOrganisationRole" Grid.Column="0" Grid.Row="0" IsEnabled="True" Text="Роль организации (UID): "/>
+                        <ComboBox Name="comboBoxOrgRole" Grid.Column="1" Grid.Row="0" IsEnabled="True" SelectedIndex="0">
+                            <ComboBoxItem Name="mtn" Content="Контроль в МТН"/>
+                            <ComboBoxItem Name="kpos" Content="Контроль в КПОС (в планах)"/>
+                            <ComboBoxItem Name="mun" Content="Контроль в МУН (в планах)"/>
+                        </ComboBox>
+                    </Grid>
+                </StackPanel>
+            </GroupBox>
+            <GroupBox Name="grBoxComparedModels" IsEnabled="True" Header="Настройки сравниваемых моделей" Margin="5,5,5,5">
+                <StackPanel Name="stackPanelComparedModels">
+                    <Grid Name="serverGrid" ShowGridLines="False" Margin="5,5,5,0" HorizontalAlignment="Stretch">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Name="textBlockServerName" Grid.Column="0" Grid.Row="0" IsEnabled="True" Text="Имя сервера: "/>
+                        <TextBox Name="textBoxServerName" Grid.Column="1" Grid.Row="0" IsEnabled="True" />
+                    </Grid>
+                    <Grid Name="reverseModelContextGrid" ShowGridLines="False" Margin="5,5,5,0" HorizontalAlignment="Stretch">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Name="textBlockReverseModelContext" Grid.Column="0" Grid.Row="0" IsEnabled="True" Text="Контекст исходной модели: "/>
+                        <TextBox Name="textBoxReverseModelContext" Grid.Column="1" Grid.Row="0" IsEnabled="True" />
+                    </Grid>
+
+                    <Grid Name="reverseModelNumGrid" ShowGridLines="False" Margin="5,5,5,0" HorizontalAlignment="Stretch">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Name="textBlockReverseModelId" Grid.Column="0" Grid.Row="0" IsEnabled="True" Text="Номер исходной модели: "/>
+                        <TextBox Name="textBoxReverseModelId" Grid.Column="1" Grid.Row="0" IsEnabled="True" />
+                    </Grid>
+                    <Grid Name="forwardModelContextGrid" ShowGridLines="False" Margin="5,5,5,0" HorizontalAlignment="Stretch">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Name="textBlockForwardModelContext" Grid.Column="0" Grid.Row="0" IsEnabled="True" Text="Контекст сравниваемой модели: "/>
+                        <TextBox Name="textBoxForwardModelContext" Grid.Column="1" Grid.Row="0" IsEnabled="True" />
+                    </Grid>
+                    <Grid Name="forwardModelNumGrid" ShowGridLines="False" Margin="5,5,5,0" HorizontalAlignment="Stretch">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Name="textBlockForwardModelId" Grid.Column="0" Grid.Row="0" IsEnabled="True" Text="Номер сравниваемой модели: "/>
+                        <TextBox Name="textBoxForwardModelId" Width="Auto" Grid.Column="1" Grid.Row="0" IsEnabled="True" />
+                    </Grid>
+                </StackPanel>
+            </GroupBox>
+            <Button Name="actionButton" Content="Сравнить модели" Margin="5,5,5,5"/>
+        </StackPanel>
     </Grid>
 </Window>
