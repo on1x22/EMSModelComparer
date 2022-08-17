@@ -93,8 +93,12 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="EMSController.cs" />
+    <Compile Include="EMSModel.cs" />
     <Compile Include="FileHandler.cs" />
     <Compile Include="FolderWithAppFilesHandler.cs" />
+    <Compile Include="IController.cs" />
+    <Compile Include="IModel.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

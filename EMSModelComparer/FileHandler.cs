@@ -92,7 +92,7 @@ namespace EMSModelComparer
 
 		internal void ReadDataFromConfigFile()
 		{
-			System.IO.FileInfo fileInfo = fileInfo = new System.IO.FileInfo(configFilePath);
+			System.IO.FileInfo fileInfo = new System.IO.FileInfo(configFilePath);
 			if (fileInfo.Exists)
 			{
 				System.IO.StreamReader srConfig = new System.IO.StreamReader(configFilePath, System.Text.Encoding.Default, false);

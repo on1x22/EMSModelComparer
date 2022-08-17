@@ -99,6 +99,7 @@
                 </StackPanel>
             </GroupBox>
             <Button Name="actionButton" Content="Сравнить модели" Margin="5,5,5,5"/>
+            <ProgressBar Name="porgressBar" Height="10" VerticalAlignment="Bottom" Margin="5,0,5,0"/>
         </StackPanel>
     </Grid>
 </Window>

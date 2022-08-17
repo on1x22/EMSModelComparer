@@ -25,17 +25,21 @@ namespace EMSModelComparer
         {
 			try
 			{
-				FolderWithAppFilesHandler programFolder = new FolderWithAppFilesHandler();
+				/*FolderWithAppFilesHandler programFolder = new FolderWithAppFilesHandler();
 				programFolder.CreateFolderWithAppFilesIfAbsent();
 
 				FileHandler fileHandler = new FileHandler(programFolder);
 				fileHandler.CreateAppFiles();
 				fileHandler.ReadDataFromConfigFile();
 
-				MainWindow mainWindow = new MainWindow(fileHandler, programFolder, MainWindow, Services);
-				mainWindow.InitializeWindow();
+				WorkWindow workWindow = new WorkWindow(fileHandler, programFolder, MainWindow, Services);
+				workWindow.InitializeWindow();
 
-				mainWindow.Start();
+				workWindow.Start();*/
+
+				IModel model = new EMSModel();
+				IController controller = new EMSController(MainWindow, Services, model);
+
 			}
 			catch (Exception ex) { MessageBox.Show(ex.Message); }
 		}
