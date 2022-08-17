@@ -11,7 +11,18 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
+//using System.Windows.Shapes;
+using Monitel.Mal;
+using Monitel.Mal.Context.CIM16.Ext.EMS;
+using Monitel.CIM.Aggregation;
+using Monitel.Protocol.Common;
+//using Monitel.CIM.Ext.EMS;
+//using Monitel.DataContext.Tools.ModelExtensions;
+//using Monitel.PlatformInfrastructure;
+//using Monitel.Supervisor.Infrastructure;
+using Monitel.UI.Infrastructure.Services;
+using Monitel.Mal.Context.CIM16;
+using Monitel.DataContext.Tools.ModelExtensions;
 
 namespace EMSModelComparer
 {
@@ -43,26 +54,32 @@ namespace EMSModelComparer
 
 			try
 			{
-				// Путь к файлам скрипта
+				FolderWithAppFilesHandler programFolder = new FolderWithAppFilesHandler();
+				programFolder.CreateFolderWithAppFilesIfAbsent();
+
+
+				/*// Путь к файлам скрипта
 				var pathToScriptFiles = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\EMS model comparer";
 
 				string md = Environment.GetFolderPath(Environment.SpecialFolder.Personal);//путь к Документам
 				if (System.IO.Directory.Exists(pathToScriptFiles) == false)
 				{
 					System.IO.Directory.CreateDirectory(pathToScriptFiles);
-				}
+				}*/
 
-				//string mydocu = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+				FileHandler fileHandler = new FileHandler(programFolder);
+				fileHandler.CreateAppFiles();
+				fileHandler.ReadDataFromConfigFile();
 
-				// Проверка наличия и чтение настроек скрипта
+				/*// Проверка наличия и чтение настроек скрипта
 				var _odbServerName = String.Empty;
 				var reverseOdbInstanseName = String.Empty;
 				var reverseOdbModelVersionId = String.Empty;
 				var forwardOdbInstanseName = String.Empty;
 				var forwardOdbModelVersionId = String.Empty;
 
-				string configFilePath = pathToScriptFiles + @"\EMSMCconfig.csv";
-				System.IO.FileInfo fileInf = new System.IO.FileInfo(/*pathToScriptFiles + @"\EMSMCconfig.csv"*/ configFilePath);
+				string configFilePath = programFolder.PathToScriptFiles + @"\EMSMCconfig.csv";
+				System.IO.FileInfo fileInf = new System.IO.FileInfo(configFilePath);
 				if (fileInf.Exists)
 				{
 					System.IO.StreamReader srConfig = new System.IO.StreamReader(configFilePath, System.Text.Encoding.Default, false);
@@ -72,13 +89,7 @@ namespace EMSModelComparer
 					{
 						string[] scriptParams = line.Split(new char[] { ';' });
 						if (scriptParams[0] == "OdbServerName")
-							_odbServerName = scriptParams[1];
-						/*{	
-							if (scriptParams[1] == null || scriptParams[1] == "")
-								_odbServerName = "";
-							else
-								_odbServerName = scriptParams[1];			
-						}*/
+							_odbServerName = scriptParams[1];						
 						if (scriptParams[0] == "ReverseOdbInstanseName")
 							reverseOdbInstanseName = scriptParams[1];
 						if (scriptParams[0] == "ReverseOdbModelVersionId")
@@ -97,18 +108,18 @@ namespace EMSModelComparer
 				}
 
 				// Проверка наличия необходимых для скрипта файлов
-				fileInf = new System.IO.FileInfo(pathToScriptFiles + @"\ExceptionPropertyList.csv");
+				fileInf = new System.IO.FileInfo(programFolder.PathToScriptFiles + @"\ExceptionPropertyList.csv");
 				if (!fileInf.Exists)
 					fileInf.Create();
-				fileInf = new System.IO.FileInfo(pathToScriptFiles + @"\ReverseHash.csv");
+				fileInf = new System.IO.FileInfo(programFolder.PathToScriptFiles + @"\ReverseHash.csv");
 				if (!fileInf.Exists)
 					fileInf.Create();
-				fileInf = new System.IO.FileInfo(pathToScriptFiles + @"\ForwardHash.csv");
+				fileInf = new System.IO.FileInfo(programFolder.PathToScriptFiles + @"\ForwardHash.csv");
 				if (!fileInf.Exists)
 					fileInf.Create();
-				fileInf = new System.IO.FileInfo(pathToScriptFiles + @"\Перечень изменений.csv");
+				fileInf = new System.IO.FileInfo(programFolder.PathToScriptFiles + @"\Перечень изменений.csv");
 				if (!fileInf.Exists)
-					fileInf.Create();
+					fileInf.Create();*/
 
 				// Потоки для работы с файлами		
 				System.IO.StreamWriter swReverse = null;
@@ -334,7 +345,7 @@ namespace EMSModelComparer
 				textBoxServerName.IsEnabled = true;
 				textBoxServerName.Width = 200;
 				textBoxServerName.Margin = new Thickness(5, 5, 5, 5);
-				textBoxServerName.Text = _odbServerName;
+				textBoxServerName.Text = fileHandler.OdbServerName/*_odbServerName*/;
 
 				// Grid для настроки контекста исходной модели
 				var reverseModelContextGrid = new System.Windows.Controls.Grid();
@@ -361,7 +372,7 @@ namespace EMSModelComparer
 				textBoxReverseModelContext.IsEnabled = true;
 				textBoxReverseModelContext.Width = 200;
 				textBoxReverseModelContext.Margin = new Thickness(5, 5, 5, 5);
-				textBoxReverseModelContext.Text = reverseOdbInstanseName;
+				textBoxReverseModelContext.Text = fileHandler.ReverseOdbInstanseName /*reverseOdbInstanseName*/;
 
 				// Grid для настроки номера исходной модели
 				var reverseModelNumGrid = new System.Windows.Controls.Grid();
@@ -388,7 +399,7 @@ namespace EMSModelComparer
 				textBoxReverseModelNum.IsEnabled = true;
 				textBoxReverseModelNum.Width = 200;
 				textBoxReverseModelNum.Margin = new Thickness(5, 5, 5, 5);
-				textBoxReverseModelNum.Text = reverseOdbModelVersionId;
+				textBoxReverseModelNum.Text = fileHandler.ReverseOdbModelVersionId/*reverseOdbModelVersionId*/;
 
 				// Grid для настроки контекста сравниваемой модели
 				var forwardModelContextGrid = new System.Windows.Controls.Grid();
@@ -415,7 +426,7 @@ namespace EMSModelComparer
 				textBoxForwardModelContext.IsEnabled = true;
 				textBoxForwardModelContext.Width = 200;
 				textBoxForwardModelContext.Margin = new Thickness(5, 5, 5, 5);
-				textBoxForwardModelContext.Text = forwardOdbInstanseName;
+				textBoxForwardModelContext.Text = fileHandler.ForwardOdbInstanseName/*forwardOdbInstanseName*/;
 
 				// Grid для настроки номера сравниваемой модели
 				var forwardModelNumGrid = new System.Windows.Controls.Grid();
@@ -442,7 +453,7 @@ namespace EMSModelComparer
 				textBoxForwardModelNum.IsEnabled = true;
 				textBoxForwardModelNum.Width = 200;
 				textBoxForwardModelNum.Margin = new Thickness(5, 5, 5, 5);
-				textBoxForwardModelNum.Text = forwardOdbModelVersionId;
+				textBoxForwardModelNum.Text = fileHandler.ForwardOdbModelVersionId/*forwardOdbModelVersionId*/;
 
 				mainStackPanel.Children.Add(grBoxComparedModels);
 
@@ -515,7 +526,7 @@ namespace EMSModelComparer
 				mainStackPanel.Children.Add(actionButton);
 
 				// UID текущей организации
-				Guid OrgUid = Monitel.UI.Infrastructure.Services.License.OrganizationUid;
+				Guid OrgUid = Services.License.OrganizationUid;
 				textBoxOrganisation.Text = OrgUid.ToString();
 
 
@@ -524,34 +535,34 @@ namespace EMSModelComparer
 					try
 					{
 						// Чтение данных
-						_odbServerName = textBoxServerName.Text;
-						reverseOdbInstanseName = textBoxReverseModelContext.Text;
-						reverseOdbModelVersionId = textBoxReverseModelNum.Text;
-						forwardOdbInstanseName = textBoxForwardModelContext.Text;
-						forwardOdbModelVersionId = textBoxForwardModelNum.Text;
+						fileHandler.OdbServerName/*_odbServerName*/ = textBoxServerName.Text;
+						fileHandler.ReverseOdbInstanseName/*reverseOdbInstanseName*/ = textBoxReverseModelContext.Text;
+						fileHandler.ReverseOdbModelVersionId/*reverseOdbModelVersionId*/ = textBoxReverseModelNum.Text;
+						fileHandler.ForwardOdbInstanseName /*forwardOdbInstanseName*/ = textBoxForwardModelContext.Text;
+						fileHandler.ForwardOdbModelVersionId /*forwardOdbModelVersionId*/ = textBoxForwardModelNum.Text;
 
-						if (_odbServerName == String.Empty || reverseOdbInstanseName == String.Empty || reverseOdbModelVersionId == String.Empty ||
-						forwardOdbInstanseName == String.Empty || forwardOdbModelVersionId == String.Empty)
+						if (fileHandler.OdbServerName == String.Empty || fileHandler.ReverseOdbInstanseName == String.Empty || fileHandler.ReverseOdbModelVersionId == String.Empty ||
+						fileHandler.ForwardOdbInstanseName == String.Empty || fileHandler.ForwardOdbModelVersionId == String.Empty)
 						{
 							throw new Exception("Введены не все данные для работы скрипта");
 						}
 
 						// Запись данных в config файл
 						//string configFilePath = pathToScriptFiles + @"\EMSMCconfig.csv";
-						System.IO.StreamWriter swConfig = new System.IO.StreamWriter(configFilePath, false, System.Text.Encoding.Default);
-						swConfig.WriteLine("OdbServerName;" + _odbServerName);
-						swConfig.WriteLine("ReverseOdbInstanseName;" + reverseOdbInstanseName);
-						swConfig.WriteLine("ReverseOdbModelVersionId;" + reverseOdbModelVersionId);
-						swConfig.WriteLine("ForwardOdbInstanseName;" + forwardOdbInstanseName);
-						swConfig.WriteLine("ForwardOdbModelVersionId;" + forwardOdbModelVersionId);
+						System.IO.StreamWriter swConfig = new System.IO.StreamWriter(fileHandler.ConfigFilePath, false, System.Text.Encoding.Default);
+						swConfig.WriteLine("OdbServerName;" + fileHandler.OdbServerName);
+						swConfig.WriteLine("ReverseOdbInstanseName;" + fileHandler.ReverseOdbInstanseName);
+						swConfig.WriteLine("ReverseOdbModelVersionId;" + fileHandler.ReverseOdbModelVersionId);
+						swConfig.WriteLine("ForwardOdbInstanseName;" + fileHandler.ForwardOdbInstanseName);
+						swConfig.WriteLine("ForwardOdbModelVersionId;" + fileHandler.ForwardOdbModelVersionId);
 						swConfig.Close();
 
 						// Подключение к исходной модели
 						Monitel.Mal.Providers.MalContextParams reverseContext = new Monitel.Mal.Providers.MalContextParams()
 						{
-							OdbServerName = _odbServerName,
-							OdbInstanseName = reverseOdbInstanseName,
-							OdbModelVersionId = Convert.ToInt32(reverseOdbModelVersionId),
+							OdbServerName = fileHandler.OdbServerName,
+							OdbInstanseName = fileHandler.ReverseOdbInstanseName,
+							OdbModelVersionId = Convert.ToInt32(fileHandler.ReverseOdbModelVersionId),
 						};
 						Monitel.Mal.Providers.Mal.MalProvider ReverseDataProvider = new Monitel.Mal.Providers.Mal.MalProvider(reverseContext, Monitel.Mal.Providers.MalContextMode.Open, "test", -1);
 						reverseModelImage = new ModelImage(ReverseDataProvider, true);
@@ -559,27 +570,27 @@ namespace EMSModelComparer
 						// Подключение к сравниваемой модели
 						Monitel.Mal.Providers.MalContextParams forwardContext = new Monitel.Mal.Providers.MalContextParams()
 						{
-							OdbServerName = _odbServerName,
-							OdbInstanseName = forwardOdbInstanseName,
-							OdbModelVersionId = Convert.ToInt32(forwardOdbModelVersionId),
+							OdbServerName = fileHandler.OdbServerName,
+							OdbInstanseName = fileHandler.ForwardOdbInstanseName,
+							OdbModelVersionId = Convert.ToInt32(fileHandler.ForwardOdbModelVersionId),
 						};
 						Monitel.Mal.Providers.Mal.MalProvider ForwardDataProvider = new Monitel.Mal.Providers.Mal.MalProvider(forwardContext, Monitel.Mal.Providers.MalContextMode.Open, "test", -1);
 						forwardModelImage = new ModelImage(ForwardDataProvider, true);
 
 						// Путь к реверс файлу
-						string reversePath = pathToScriptFiles + @"\ReverseHash.csv";
+						string reversePath = programFolder.PathToScriptFiles + @"\ReverseHash.csv";
 						System.IO.StreamWriter swReverse = new System.IO.StreamWriter(reversePath, false, System.Text.Encoding.Default);
 
 						// Путь к форвард файлу
-						string forwardPath = pathToScriptFiles + @"\ForwardHash.csv";
+						string forwardPath = programFolder.PathToScriptFiles + @"\ForwardHash.csv";
 						System.IO.StreamWriter swForward = new System.IO.StreamWriter(forwardPath, false, System.Text.Encoding.Default);
 
 						// Путь к главному файлу с изменениями
-						string differencePath = pathToScriptFiles + @"\Перечень изменений.csv";
+						string differencePath = programFolder.PathToScriptFiles + @"\Перечень изменений.csv";
 						System.IO.StreamWriter swDiff = new System.IO.StreamWriter(differencePath, false, System.Text.Encoding.Default);
 
 						// Путь к файлу со свойствами, исключаемыми из проверки
-						string exceptionPropertyListPath = pathToScriptFiles + @"\ExceptionPropertyList.csv";
+						string exceptionPropertyListPath = programFolder.PathToScriptFiles + @"\ExceptionPropertyList.csv";
 						System.IO.StreamReader srExcep = new System.IO.StreamReader(exceptionPropertyListPath, System.Text.Encoding.Default, false);
 
 						HashSet<Guid> reverseObjectsUids = new HashSet<Guid>(); // Перечень объектов контроля из старой модели
@@ -1489,7 +1500,7 @@ namespace EMSModelComparer
 
 
 				dynamic dockLayoutManager = (MainWindow.Content as System.Windows.Controls.Grid).Children[2];
-				var dockingAssemName = "DevExpress.Xpf.Docking.v21.1, Version=21.1.4.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a";
+				var dockingAssemName = "DevExpress.Xpf.Docking.v21.2, Version=21.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a";
 				System.Reflection.Assembly dockingAssem = System.Reflection.Assembly.Load(dockingAssemName);
 
 

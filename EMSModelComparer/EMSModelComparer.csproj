@@ -35,6 +35,36 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Monitel.CIM.Aggregation">
+      <HintPath>C:\Program Files\Monitel\CK-11\Client\Monitel.CIM.Aggregation.dll</HintPath>
+    </Reference>
+    <Reference Include="Monitel.CIM.CommonLib">
+      <HintPath>C:\Program Files\Monitel\CK-11\Client\Monitel.CIM.CommonLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Monitel.CIM.Ext.Common">
+      <HintPath>C:\Program Files\Monitel\CK-11\Client\Monitel.CIM.Ext.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Monitel.CIM.Ext.EMS">
+      <HintPath>C:\Program Files\Monitel\CK-11\Client\Monitel.CIM.Ext.EMS.dll</HintPath>
+    </Reference>
+    <Reference Include="Monitel.DataContext.Tools">
+      <HintPath>C:\Program Files\Monitel\CK-11\Client\Monitel.DataContext.Tools.dll</HintPath>
+    </Reference>
+    <Reference Include="Monitel.Mal">
+      <HintPath>C:\Program Files\Monitel\CK-11\Client\Monitel.Mal.dll</HintPath>
+    </Reference>
+    <Reference Include="Monitel.Mal.Context.CIM16">
+      <HintPath>C:\Program Files\Monitel\CK-11\Client\Monitel.Mal.Context.CIM16.dll</HintPath>
+    </Reference>
+    <Reference Include="Monitel.PlatformInfrastructure">
+      <HintPath>C:\Program Files\Monitel\CK-11\Client\Monitel.PlatformInfrastructure.dll</HintPath>
+    </Reference>
+    <Reference Include="Monitel.Supervisor.Infrastructure">
+      <HintPath>C:\Program Files\Monitel\CK-11\Client\Monitel.Supervisor.Infrastructure.dll</HintPath>
+    </Reference>
+    <Reference Include="Monitel.UI.Infrastructure">
+      <HintPath>C:\Program Files\Monitel\CK-11\Client\Monitel.UI.Infrastructure.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -63,6 +93,8 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="FileHandler.cs" />
+    <Compile Include="FolderWithAppFilesHandler.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
