@@ -5,6 +5,7 @@ namespace EMSModelComparer
 {
     internal class FileHandler
     {
+		//TODO: Убрать поля, оставить только свойства
 		private readonly string configFilePath;
 		private string odbServerName = String.Empty;
 		private string reverseOdbInstanseName = String.Empty;
@@ -12,6 +13,9 @@ namespace EMSModelComparer
 		private string forwardOdbInstanseName = String.Empty;
 		private string forwardOdbModelVersionId = String.Empty;
 		private readonly FolderWithAppFilesHandler programFolder;
+
+		
+		public Guid OrganisationUid { get; set; }
 
 		public string ConfigFilePath
 		{
@@ -81,7 +85,7 @@ namespace EMSModelComparer
 			}
 		}
 
-
+		public bool IsFileOpen { get; set; }
 
 		internal FileHandler(FolderWithAppFilesHandler programFolder)
 		{
@@ -150,6 +154,10 @@ namespace EMSModelComparer
 				fileInfo.Create();
 
 			fileInfo = new System.IO.FileInfo(programFolder.PathToScriptFiles + @"\Перечень изменений.csv");
+			if (!fileInfo.Exists)
+				fileInfo.Create();
+
+			fileInfo = new System.IO.FileInfo(programFolder.PathToScriptFiles + @"\EMSMCLog.txt");
 			if (!fileInfo.Exists)
 				fileInfo.Create();
 		}

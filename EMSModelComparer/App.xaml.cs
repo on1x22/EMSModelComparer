@@ -9,7 +9,6 @@ using Monitel.Mal;
 using Monitel.Mal.Context.CIM16.Ext.EMS;
 using Monitel.CIM.Aggregation;
 using Monitel.Protocol.Common;
-using Monitel.UI.Infrastructure.Services;
 using Monitel.Mal.Context.CIM16;
 using Monitel.DataContext.Tools.ModelExtensions;
 
@@ -21,7 +20,7 @@ namespace EMSModelComparer
     public partial class App : Application
     {
         [STAThread]
-        public static void Main() 
+        public static void Main(string[] args) 
         {
 			try
 			{
@@ -36,12 +35,20 @@ namespace EMSModelComparer
 				workWindow.InitializeWindow();
 
 				workWindow.Start();*/
-
-				IModel model = new EMSModel();
-				IController controller = new EMSController(MainWindow, Services, model);
+				
+				IModel model = new EMSModel(GetOrganisationUid(args));
+				IController controller = new EMSController(/*MainWindow, Services,*/ model);
 
 			}
 			catch (Exception ex) { MessageBox.Show(ex.Message); }
+		}
+
+		internal static Guid GetOrganisationUid(string[] args)
+        {
+			if (args.Count() == 1 && Guid.TryParse(args[0], out Guid guid))
+				return guid;
+
+			return new Guid("00000000-0000-0000-0000-000000000000");
 		}
     }
 }

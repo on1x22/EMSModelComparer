@@ -30,7 +30,7 @@
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Name="textBlockOrganisationRole" Grid.Column="0" Grid.Row="0" IsEnabled="True" Text="Роль организации (UID): "/>
-                        <ComboBox Name="comboBoxOrgRole" Grid.Column="1" Grid.Row="0" IsEnabled="True" SelectedIndex="0">
+                        <ComboBox Name="comboBoxOrganisationRole" Grid.Column="1" Grid.Row="0" IsEnabled="True" SelectedIndex="0">
                             <ComboBoxItem Name="mtn" Content="Контроль в МТН"/>
                             <ComboBoxItem Name="kpos" Content="Контроль в КПОС (в планах)"/>
                             <ComboBoxItem Name="mun" Content="Контроль в МУН (в планах)"/>
@@ -98,8 +98,20 @@
                     </Grid>
                 </StackPanel>
             </GroupBox>
-            <Button Name="actionButton" Content="Сравнить модели" Margin="5,5,5,5"/>
+            <Grid Name="isFileOpenGrid" ShowGridLines="False" Margin="5,5,5,0" HorizontalAlignment="Stretch">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Name="textBlockIsFileOpen" Grid.Column="0" Grid.Row="0" IsEnabled="True" Text="Открыть результирующий файл после выполнения: " Margin="10,0,0,0"/>                
+                <CheckBox Name="checkBoxIsFileOpen" IsThreeState="False" IsChecked="True" Grid.Column="1" Grid.Row="0" IsEnabled="True"/>
+            </Grid>
+            <Button Name="actionButton" Content="Сравнить модели" Margin="5,5,5,5" Click="actionButton_Click"/>
             <ProgressBar Name="porgressBar" Height="10" VerticalAlignment="Bottom" Margin="5,0,5,0"/>
+            <StatusBar Name="statusBar" Height="20" VerticalAlignment="Bottom" Margin="0,5,0,0" />
         </StackPanel>
     </Grid>
 </Window>

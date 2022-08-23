@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Windows;
 using System.Linq;
-using System.Text;
+using System.ComponentModel;
+using System.IO;
 using System.Threading.Tasks;
 using Monitel.Mal;
 using Monitel.DataContext.Tools.ModelExtensions;
 using Monitel.Mal.Context.CIM16;
 using Monitel.Mal.Context.CIM16.Ext.EMS;
-using Monitel.UI.Infrastructure.Services;
+using Monitel.Mal.Providers;
+using Monitel.Mal.Providers.Mal;
+
 
 namespace EMSModelComparer
 {
@@ -35,10 +38,7 @@ namespace EMSModelComparer
         private System.IO.StreamWriter swDiff;
         private System.IO.StreamReader srExcep;
 
-        private IServiceManager Services;
-
-        private Guid OrgUid;
-
+        Logger logger;
 
         public string OdbServerName
         {
@@ -76,13 +76,19 @@ namespace EMSModelComparer
             set { organisationRoleIndex = value; }
         }
 
-        public Guid OrganisationUID
+        public Guid OrganisationUid
         {
-            get { return OrgUid; }
-            set { OrgUid = value; }
+            get { return fileHandler.OrganisationUid; }
+            set { fileHandler.OrganisationUid = value; }
         }
 
-        internal EMSModel()
+        public bool IsFileOpen 
+        {
+            get { return fileHandler.IsFileOpen; }
+            set { fileHandler.IsFileOpen = value; }
+        }
+
+        internal EMSModel(Guid organisationUid)
         {
             programFolder = new FolderWithAppFilesHandler();
             programFolder.CreateFolderWithAppFilesIfAbsent();
@@ -90,63 +96,69 @@ namespace EMSModelComparer
             fileHandler = new FileHandler(programFolder);
             fileHandler.CreateAppFiles();
             fileHandler.ReadDataFromConfigFile();
+
+            logger = new Logger(programFolder);
+
+            OrganisationUid = organisationUid;
         }
 
         public void CompareModels()
         {
             try
             {
+                logger.Write(Severity.Info, "Запуск сравнения");
                 UpdateConfigFile();
+                logger.Write(Severity.Info, "Подключение к серверу " + fileHandler.OdbServerName);
 
-                ConnectToReverseModelimage();
-                ConnectToForwardModelImage();
+                ConnectToModelImage(ref reverseModelImage, fileHandler.ReverseOdbInstanseName, fileHandler.ReverseOdbModelVersionId);
+                ConnectToModelImage(ref forwardModelImage, fileHandler.ForwardOdbInstanseName, fileHandler.ForwardOdbModelVersionId);
 
                 SetStreamWriters();
                 SetStreamReaders();
-                //SetHashSets();
 
                 ChooseOrganisationRoleToCompare();
 
                 WriteLogFiles();
 
                 // Отладочная информация
-                MessageBox.Show("В списке исключений: " + exceptionPropertyHash.Count());
-                MessageBox.Show("Добавлено reverse объектов: " + reverseObjectsUids.Count());
-                MessageBox.Show("Добавлено forward объектов: " + forwardObjectsUids.Count());
+                logger.Write(Severity.Info, "В списке исключений: " + exceptionPropertyHash.Count());
+                logger.Write(Severity.Info, "Добавлено reverse объектов: " + reverseObjectsUids.Count());
+                logger.Write(Severity.Info, "Добавлено forward объектов: " + forwardObjectsUids.Count());
 
                 // Далее составляется список изменений в моделях
+                listOfDifferences = new List<string>();
                 listOfDifferences.Add("UID;Действие;Текст;Имя объекта;Класс объекта;Ответственный за моделирование");   // Шапка таблицы
 
                 HashSet<Guid> deletedObjectsUids = new HashSet<Guid>(reverseObjectsUids);   // Перечень объектов удаленных из модели
                 deletedObjectsUids.ExceptWith(forwardObjectsUids);
 
-                MessageBox.Show("Удаленных объектов: " + deletedObjectsUids.Count());
+                logger.Write(Severity.Info, "Удаленных объектов: " + deletedObjectsUids.Count());
 
                 foreach (Guid uid in deletedObjectsUids)
                 {
-                    ODUSVWriteAddedOrDeletedObject(uid, reverseModelImage, "deleted");
+                    WriteAddedOrDeletedObject(uid, reverseModelImage, "deleted");
                 }
 
                 HashSet<Guid> addedObjectsUids = new HashSet<Guid>(forwardObjectsUids); // Перечень объектов добавленных в модель
                 addedObjectsUids.ExceptWith(reverseObjectsUids);
 
-                MessageBox.Show("Добавленных объектов: " + addedObjectsUids.Count());
+                logger.Write(Severity.Info, "Добавленных объектов: " + addedObjectsUids.Count());
 
                 foreach (Guid uid in addedObjectsUids)
                 {
-                    ODUSVWriteAddedOrDeletedObject(uid, forwardModelImage, "added");
+                    WriteAddedOrDeletedObject(uid, forwardModelImage, "added");
                 }
 
                 // Добавление в список измененных объектов
                 HashSet<Guid> otherMTNUids = new HashSet<Guid>(reverseObjectsUids); // Перечень объектов добавленных в модель
                 otherMTNUids.IntersectWith(forwardObjectsUids);
 
-                MessageBox.Show("Оставшихся объектов: " + otherMTNUids.Count());
+                logger.Write(Severity.Info, "Оставшихся объектов: " + otherMTNUids.Count());
 
                 // Составление списка изменений
                 foreach (Guid uid in otherMTNUids)
                 {
-                    ODUSVFindChanges(uid);
+                    FindChanges(uid);
                 }
 
 
@@ -157,18 +169,24 @@ namespace EMSModelComparer
                 }
 
                 swDiff.Close();
+                logger.Write(Severity.Info, "Скрипт выполнен успешно");
                 MessageBox.Show("Скрипт выполнен успешно");
+
+                if (IsFileOpen == true)
+                {   
+                    System.Diagnostics.Process.Start(programFolder.PathToScriptFiles + @"\Перечень изменений.csv");
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message + "\n" + ex.StackTrace);
+                logger.Write(Severity.Error, ex.Message + "\n" + ex.StackTrace);
             }
             finally
             {
-                swReverse.Close();
-                swForward.Close();
-                swDiff.Close();
-                srExcep.Close();
+                swReverse?.Close();
+                swForward?.Close();
+                swDiff?.Close();
+                srExcep?.Close();
             }
         }
 
@@ -184,61 +202,42 @@ namespace EMSModelComparer
             swConfig.Close();
         }
 
-        private void ConnectToReverseModelimage()
-        {
-            // Подключение к исходной модели
-            Monitel.Mal.Providers.MalContextParams reverseContext = new Monitel.Mal.Providers.MalContextParams()
-            {
-                OdbServerName = fileHandler.OdbServerName,
-                OdbInstanseName = fileHandler.ReverseOdbInstanseName,
-                OdbModelVersionId = Convert.ToInt32(fileHandler.ReverseOdbModelVersionId),
-            };
-            Monitel.Mal.Providers.Mal.MalProvider ReverseDataProvider = new Monitel.Mal.Providers.Mal.MalProvider(reverseContext, Monitel.Mal.Providers.MalContextMode.Open, "test", -1);
-            reverseModelImage = new ModelImage(ReverseDataProvider, true);
-        }
-
-        private void ConnectToForwardModelImage()
+        private void ConnectToModelImage(ref ModelImage modelImage, string odbInstanseName, string odbModelVersionId)
         {
             // Подключение к сравниваемой модели
-            Monitel.Mal.Providers.MalContextParams forwardContext = new Monitel.Mal.Providers.MalContextParams()
+            MalContextParams context = new MalContextParams()
             {
                 OdbServerName = fileHandler.OdbServerName,
-                OdbInstanseName = fileHandler.ForwardOdbInstanseName,
-                OdbModelVersionId = Convert.ToInt32(fileHandler.ForwardOdbModelVersionId),
+                OdbInstanseName = odbInstanseName,
+                OdbModelVersionId = Convert.ToInt32(odbModelVersionId),
             };
-            Monitel.Mal.Providers.Mal.MalProvider ForwardDataProvider = new Monitel.Mal.Providers.Mal.MalProvider(forwardContext, Monitel.Mal.Providers.MalContextMode.Open, "test", -1);
-            forwardModelImage = new ModelImage(ForwardDataProvider, true);
+            MalProvider dataProvider = new MalProvider(context, MalContextMode.Open, "test", -1);
+            modelImage = new ModelImage(dataProvider, true);
+
+            logger.Write(Severity.Info, "Выполнено подключение к модели " + odbInstanseName + " " + odbModelVersionId);
         }
 
         private void SetStreamWriters()
         {
             // Путь к реверс файлу
             string reversePath = programFolder.PathToScriptFiles + @"\ReverseHash.csv";
-            System.IO.StreamWriter swReverse = new System.IO.StreamWriter(reversePath, false, System.Text.Encoding.Default);
+            swReverse = new System.IO.StreamWriter(reversePath, false, System.Text.Encoding.Default);
 
             // Путь к форвард файлу
             string forwardPath = programFolder.PathToScriptFiles + @"\ForwardHash.csv";
-            System.IO.StreamWriter swForward = new System.IO.StreamWriter(forwardPath, false, System.Text.Encoding.Default);
+            swForward = new System.IO.StreamWriter(forwardPath, false, System.Text.Encoding.Default);
 
             // Путь к главному файлу с изменениями
             string differencePath = programFolder.PathToScriptFiles + @"\Перечень изменений.csv";
-            System.IO.StreamWriter swDiff = new System.IO.StreamWriter(differencePath, false, System.Text.Encoding.Default);
+            swDiff = new System.IO.StreamWriter(differencePath, false, System.Text.Encoding.Default);
         }
 
         private void SetStreamReaders()
         {
             // Путь к файлу со свойствами, исключаемыми из проверки
             string exceptionPropertyListPath = programFolder.PathToScriptFiles + @"\ExceptionPropertyList.csv";
-            System.IO.StreamReader srExcep = new System.IO.StreamReader(exceptionPropertyListPath, System.Text.Encoding.Default, false);
+            srExcep = new System.IO.StreamReader(exceptionPropertyListPath, System.Text.Encoding.Default, false);
         }
-
-        /*private void SetHashSets()
-        {
-            HashSet<Guid> reverseObjectsUids = new HashSet<Guid>(); // Перечень объектов контроля из старой модели
-            HashSet<Guid> forwardObjectsUids = new HashSet<Guid>(); // Перечень объектов контроля из новой модели
-
-            exceptionPropertyHash = new HashSet<string>(); // Перечень свойст, которые исключаются из проверки
-        }*/
 
         private void ChooseOrganisationRoleToCompare()
         {
@@ -247,8 +246,11 @@ namespace EMSModelComparer
             if (OrganisationRoleIndex == 0)
             {
                 roleTypeUid = new Guid("1000161E-0000-0000-C000-0000006D746C"); // Контроль в МТН
-                ODUSVCreatingListOfComparedObjectsMTN(reverseObjectsUids, ODUSVFindOrganisationRole(roleTypeUid, OrgUid), reverseModelImage);
-                ODUSVCreatingListOfComparedObjectsMTN(forwardObjectsUids, ODUSVFindOrganisationRole(roleTypeUid, OrgUid), forwardModelImage);
+                reverseObjectsUids = new HashSet<Guid>();
+                forwardObjectsUids = new HashSet<Guid>();
+                Guid organisationRoleUid = FindOrganisationRole(roleTypeUid, OrganisationUid);
+                AddObjectsToHashSet(reverseObjectsUids, organisationRoleUid, reverseModelImage);
+                AddObjectsToHashSet(forwardObjectsUids, organisationRoleUid, forwardModelImage);
             }
             else if (OrganisationRoleIndex == 1)
             {
@@ -262,7 +264,7 @@ namespace EMSModelComparer
             }
         }
 
-        Guid ODUSVFindOrganisationRole(Guid roleTypeUid, Guid organisationUid)
+        Guid FindOrganisationRole(Guid roleTypeUid, Guid organisationUid)
         {
             Guid result = new Guid();
 
@@ -275,14 +277,12 @@ namespace EMSModelComparer
                     break;
                 }
             }
-
             return result;
         }
 
         // Метод создания списка с UID'ами объектов, участвующих в МТН
-        void ODUSVCreatingListOfComparedObjectsMTN(HashSet<Guid> hashOfObjects, Guid Uid, ModelImage mImg)
-        {
-            var mObjects = mImg.GetObjects<IdentifiedObject>();
+        void AddObjectsToHashSet(HashSet<Guid> hashOfObjects, Guid Uid, ModelImage mImg)
+        {           
             var orgRole = mImg.GetObject<OrganisationRole>(Uid);
 
             foreach (IdentifiedObject obj in orgRole.Objects)
@@ -291,34 +291,34 @@ namespace EMSModelComparer
                 hashOfObjects.Add(obj.Uid);
 
                 // Добавляем все дочерние объекты
-                ODUSVCreatingListOfChildObjects(obj, hashOfObjects);
+                AddChildObjectsToHashSet(obj, hashOfObjects);
             }
         }
 
         // Рекурсивный метод добавления в список дочерних объектов
-        void ODUSVCreatingListOfChildObjects(IdentifiedObject currentObj, HashSet<Guid> hashOfChildObjects)
+        void AddChildObjectsToHashSet(IdentifiedObject currentObj, HashSet<Guid> hashOfObjects)
         {
             if (currentObj.ChildObjects.Count() > 0)
-            {
+            {                
                 foreach (IdentifiedObject childObj in currentObj.ChildObjects)
                 {
                     // Добавляем в список оборудование
-                    hashOfChildObjects.Add(childObj.Uid);
+                    hashOfObjects.Add(childObj.Uid);
 
                     // Проверяем и добавляем в список все связанные метеостанции и их дочерние объекты
-                    ODUSVFindWeatherStations(childObj, hashOfChildObjects);
+                    FindWeatherStations(childObj, hashOfObjects);
 
                     // Проверяем и добавляем в список все связанные уставки ступеней РЗА
-                    ODUSVFindPEStageSetPoints(childObj, hashOfChildObjects);
+                    FindPEStageSetPoints(childObj, hashOfObjects);
 
                     // Рекурсивно добавляем в список все дочерние объекты
-                    ODUSVCreatingListOfChildObjects(childObj, hashOfChildObjects);
-                }
+                    AddChildObjectsToHashSet(childObj, hashOfObjects);
+                }                
             }
         }
 
         // Метод добавления в список связанных с оборудованием метеостанций
-        void ODUSVFindWeatherStations(IdentifiedObject obj, HashSet<Guid> hashOfWeatherStations)
+        void FindWeatherStations(IdentifiedObject obj, HashSet<Guid> hashOfWeatherStations)
         {
             if (obj is Equipment)
             {
@@ -326,7 +326,7 @@ namespace EMSModelComparer
                 {
                     hashOfWeatherStations.Add(ws.Uid);
 
-                    ODUSVCreatingListOfChildObjects(obj, hashOfWeatherStations);
+                    AddChildObjectsToHashSet(obj, hashOfWeatherStations);
                 }
             }
             else if (obj is Terminal)
@@ -335,13 +335,13 @@ namespace EMSModelComparer
                 {
                     hashOfWeatherStations.Add(ws.Uid);
 
-                    ODUSVCreatingListOfChildObjects(obj, hashOfWeatherStations);
+                    AddChildObjectsToHashSet(obj, hashOfWeatherStations);
                 }
             }
         }
 
         // Метод добавления в список уставок ступеней РЗА
-        void ODUSVFindPEStageSetPoints(IdentifiedObject obj, HashSet<Guid> hashOfPEStageSetPoints)
+        void FindPEStageSetPoints(IdentifiedObject obj, HashSet<Guid> hashOfPEStageSetPoints)
         {
             if (obj is PEStage)
             {
@@ -354,6 +354,7 @@ namespace EMSModelComparer
 
         private void WriteLogFiles()
         {
+            exceptionPropertyHash = new HashSet<string>();
             // Запись списка объектов из проверяемых моделей в соответствующие файлы
             foreach (Guid uid in reverseObjectsUids)
             {
@@ -373,27 +374,29 @@ namespace EMSModelComparer
         }
 
         // Метод записи добавленного/удаленного объекта ИМ по UID в общий список изменений
-        void ODUSVWriteAddedOrDeletedObject(Guid uid, ModelImage mImg, string state)
+        void WriteAddedOrDeletedObject(Guid uid, ModelImage mImg, string state)
         {
-            var selectedObject = mImg.GetObject<IdentifiedObject>(uid);
+            var selectedObject = mImg.GetObject<IMalObject>(uid);
             switch (state)
             {
                 case "deleted":
-                    listOfDifferences.Add(Convert.ToString(selectedObject.Uid) + ";Удаление;Удален объект класса " + selectedObject.ClassName() + ";" + selectedObject.name + ";" + selectedObject.ClassName());
+                    listOfDifferences.Add(Convert.ToString(selectedObject.Uid) + ";Удаление;Удален объект класса " + selectedObject.ClassName() + ";" + 
+                        selectedObject is IdentifiedObject ? (selectedObject as IdentifiedObject).name : "" /*selectedObject.name*/ + ";" + selectedObject.ClassName());
                     break;
                 case "added":
-                    listOfDifferences.Add(Convert.ToString(selectedObject.Uid) + ";Добавление;Добавлен объект класса " + selectedObject.ClassName() + ";" + selectedObject.name + ";" + selectedObject.ClassName());
+                    listOfDifferences.Add(Convert.ToString(selectedObject.Uid) + ";Добавление;Добавлен объект класса " + selectedObject.ClassName() + ";" +
+                        selectedObject is IdentifiedObject ? (selectedObject as IdentifiedObject).name : "" /*selectedObject.name*/ + ";" + selectedObject.ClassName());
                     break;
             }
         }
 
-        void ODUSVFindChanges(Guid uid)
+        void FindChanges(Guid uid)
         {
-            var reverseObject = reverseModelImage.GetObject</*IdentifiedObject*/IMalObject>(uid);
+            var reverseObject = reverseModelImage.GetObject<IMalObject>(uid);
             // Проверка на принадлежность к именуемым объектам или уставкам РЗА
             if (reverseObject != null)
             {
-                var forwardObject = forwardModelImage.GetObject</*IdentifiedObject*/IMalObject>(uid);
+                var forwardObject = forwardModelImage.GetObject<IMalObject>(uid);
 
                 // Если проверяемый объект - IMalObject
                 if (reverseObject is IMalObject)
@@ -405,7 +408,7 @@ namespace EMSModelComparer
                     var iMORev = reverseObject as IMalObject;
                     var iMOForw = forwardObject as IMalObject;
 
-                    ODUSVPropertyReflectInfo(iMORev, iMOForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(iMORev, iMOForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 #region             
@@ -414,7 +417,7 @@ namespace EMSModelComparer
                 {
                     ACLineSegment rObj = reverseObject as ACLineSegment;
                     ACLineSegment fObj = forwardObject as ACLineSegment;
-                    ODUSVPropertyReflectInfo(rObj, fObj, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(rObj, fObj, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // Если проверяемый объект - аналог
@@ -422,7 +425,7 @@ namespace EMSModelComparer
                 {
                     Analog rObj = reverseObject as Analog;
                     Analog fObj = forwardObject as Analog;
-                    ODUSVPropertyReflectInfo(rObj, fObj, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(rObj, fObj, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // Если проверяемый объект - дискрет
@@ -430,7 +433,7 @@ namespace EMSModelComparer
                 {
                     Discrete rObj = reverseObject as Discrete;
                     Discrete fObj = forwardObject as Discrete;
-                    ODUSVPropertyReflectInfo(rObj, fObj, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(rObj, fObj, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // Если проверяемый объект - ошиновка
@@ -438,7 +441,7 @@ namespace EMSModelComparer
                 {
                     BusArrangement rObj = reverseObject as BusArrangement;
                     BusArrangement fObj = forwardObject as BusArrangement;
-                    ODUSVPropertyReflectInfo(rObj, fObj, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(rObj, fObj, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // Если проверяемый объект - набор эксплуатационных ограничений		
@@ -446,7 +449,7 @@ namespace EMSModelComparer
                 {
                     OperationalLimitSet rObj = reverseObject as OperationalLimitSet;
                     OperationalLimitSet fObj = forwardObject as OperationalLimitSet;
-                    ODUSVPropertyReflectInfo(rObj, fObj, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(rObj, fObj, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // Если проверяемый объект - предел тока		
@@ -455,7 +458,7 @@ namespace EMSModelComparer
                     CurrentLimit cLRev = reverseObject as CurrentLimit;
                     CurrentLimit cLForw = forwardObject as CurrentLimit;
 
-                    ODUSVPropertyReflectInfo(cLRev, cLForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(cLRev, cLForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 //CurrentFlowUnbalanceLimit
@@ -465,7 +468,7 @@ namespace EMSModelComparer
                     CurrentFlowUnbalanceLimit cFULRev = reverseObject as CurrentFlowUnbalanceLimit;
                     CurrentFlowUnbalanceLimit cFULForw = forwardObject as CurrentFlowUnbalanceLimit;
 
-                    ODUSVPropertyReflectInfo(cFULRev, cFULForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(cFULRev, cFULForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // Если проверяемый объект - кривая зависимости тока от температуры
@@ -474,7 +477,7 @@ namespace EMSModelComparer
                     CurrentVsTemperatureLimitCurve cVTLCRev = reverseObject as CurrentVsTemperatureLimitCurve;
                     CurrentVsTemperatureLimitCurve cVTLCForw = forwardObject as CurrentVsTemperatureLimitCurve;
 
-                    ODUSVPropertyReflectInfo(cVTLCRev, cVTLCForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(cVTLCRev, cVTLCForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 //PotentialTransformer
@@ -484,7 +487,7 @@ namespace EMSModelComparer
                     PotentialTransformer pTRev = reverseObject as PotentialTransformer;
                     PotentialTransformer pTForw = forwardObject as PotentialTransformer;
 
-                    ODUSVPropertyReflectInfo(pTRev, pTForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(pTRev, pTForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // PotentialTransformerWinding
@@ -494,7 +497,7 @@ namespace EMSModelComparer
                     PotentialTransformerWinding pTWRev = reverseObject as PotentialTransformerWinding;
                     PotentialTransformerWinding pTWForw = forwardObject as PotentialTransformerWinding;
 
-                    ODUSVPropertyReflectInfo(pTWRev, pTWForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(pTWRev, pTWForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // Terminal
@@ -504,7 +507,7 @@ namespace EMSModelComparer
                     Terminal tRev = reverseObject as Terminal;
                     Terminal tForw = forwardObject as Terminal;
 
-                    ODUSVPropertyReflectInfo(tRev, tForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(tRev, tForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // WaveTrap
@@ -514,7 +517,7 @@ namespace EMSModelComparer
                     WaveTrap wTRev = reverseObject as WaveTrap;
                     WaveTrap wTForw = forwardObject as WaveTrap;
 
-                    ODUSVPropertyReflectInfo(wTRev, wTForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(wTRev, wTForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // Breaker
@@ -524,7 +527,7 @@ namespace EMSModelComparer
                     Breaker bRev = reverseObject as Breaker;
                     Breaker bForw = forwardObject as Breaker;
 
-                    ODUSVPropertyReflectInfo(bRev, bForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(bRev, bForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // AnalogValue
@@ -534,7 +537,7 @@ namespace EMSModelComparer
                     AnalogValue aVRev = reverseObject as AnalogValue;
                     AnalogValue aVForw = forwardObject as AnalogValue;
 
-                    ODUSVPropertyReflectInfo(aVRev, aVForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(aVRev, aVForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // DiscreteValue
@@ -544,7 +547,7 @@ namespace EMSModelComparer
                     DiscreteValue dVRev = reverseObject as DiscreteValue;
                     DiscreteValue dVForw = forwardObject as DiscreteValue;
 
-                    ODUSVPropertyReflectInfo(dVRev, dVForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(dVRev, dVForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // CurrentTransformer
@@ -554,7 +557,7 @@ namespace EMSModelComparer
                     CurrentTransformer cTRev = reverseObject as CurrentTransformer;
                     CurrentTransformer cTForw = forwardObject as CurrentTransformer;
 
-                    ODUSVPropertyReflectInfo(cTRev, cTForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(cTRev, cTForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // CurrentTransformerWinding
@@ -564,7 +567,7 @@ namespace EMSModelComparer
                     CurrentTransformerWinding cTWRev = reverseObject as CurrentTransformerWinding;
                     CurrentTransformerWinding cTWForw = forwardObject as CurrentTransformerWinding;
 
-                    ODUSVPropertyReflectInfo(cTWRev, cTWForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(cTWRev, cTWForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // Disconnector
@@ -574,7 +577,7 @@ namespace EMSModelComparer
                     Disconnector dRev = reverseObject as Disconnector;
                     Disconnector dForw = forwardObject as Disconnector;
 
-                    ODUSVPropertyReflectInfo(dRev, dForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(dRev, dForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // Line
@@ -584,7 +587,7 @@ namespace EMSModelComparer
                     Line lRev = reverseObject as Line;
                     Line lForw = forwardObject as Line;
 
-                    ODUSVPropertyReflectInfo(lRev, lForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(lRev, lForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // PowerTransformer
@@ -594,7 +597,7 @@ namespace EMSModelComparer
                     PowerTransformer pTRev = reverseObject as PowerTransformer;
                     PowerTransformer pTForw = forwardObject as PowerTransformer;
 
-                    ODUSVPropertyReflectInfo(pTRev, pTForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(pTRev, pTForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // PowerTransformerEnd
@@ -604,7 +607,7 @@ namespace EMSModelComparer
                     PowerTransformerEnd pTERev = reverseObject as PowerTransformerEnd;
                     PowerTransformerEnd pTEForw = forwardObject as PowerTransformerEnd;
 
-                    ODUSVPropertyReflectInfo(pTERev, pTEForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(pTERev, pTEForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // CurrentVsTapStepLimitCurve
@@ -614,7 +617,7 @@ namespace EMSModelComparer
                     CurrentVsTapStepLimitCurve cVTSLCRev = reverseObject as CurrentVsTapStepLimitCurve;
                     CurrentVsTapStepLimitCurve cVTSLCForw = forwardObject as CurrentVsTapStepLimitCurve;
 
-                    ODUSVPropertyReflectInfo(cVTSLCRev, cVTSLCForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(cVTSLCRev, cVTSLCForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // RatioTapChanger
@@ -624,7 +627,7 @@ namespace EMSModelComparer
                     RatioTapChanger rTCRev = reverseObject as RatioTapChanger;
                     RatioTapChanger rTCForw = forwardObject as RatioTapChanger;
 
-                    ODUSVPropertyReflectInfo(rTCRev, rTCForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(rTCRev, rTCForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // TransformerMeshImpedance
@@ -634,7 +637,7 @@ namespace EMSModelComparer
                     TransformerMeshImpedance tMIRev = reverseObject as TransformerMeshImpedance;
                     TransformerMeshImpedance tMIForw = forwardObject as TransformerMeshImpedance;
 
-                    ODUSVPropertyReflectInfo(tMIRev, tMIForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(tMIRev, tMIForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // LoadSheddingEquipment
@@ -644,7 +647,7 @@ namespace EMSModelComparer
                     LoadSheddingEquipment lSERev = reverseObject as LoadSheddingEquipment;
                     LoadSheddingEquipment lSEForw = forwardObject as LoadSheddingEquipment;
 
-                    ODUSVPropertyReflectInfo(lSERev, lSEForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(lSERev, lSEForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // GenericPSR
@@ -654,7 +657,7 @@ namespace EMSModelComparer
                     GenericPSR gPSRRev = reverseObject as GenericPSR;
                     GenericPSR gPSRForw = forwardObject as GenericPSR;
 
-                    ODUSVPropertyReflectInfo(gPSRRev, gPSRForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(gPSRRev, gPSRForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // GenerationUnloadingStage
@@ -664,7 +667,7 @@ namespace EMSModelComparer
                     GenerationUnloadingStage gUSRev = reverseObject as GenerationUnloadingStage;
                     GenerationUnloadingStage gUSForw = forwardObject as GenerationUnloadingStage;
 
-                    ODUSVPropertyReflectInfo(gUSRev, gUSForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(gUSRev, gUSForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // LoadSheddingStage
@@ -674,7 +677,7 @@ namespace EMSModelComparer
                     LoadSheddingStage lSSRev = reverseObject as LoadSheddingStage;
                     LoadSheddingStage lSSForw = forwardObject as LoadSheddingStage;
 
-                    ODUSVPropertyReflectInfo(lSSRev, lSSForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(lSSRev, lSSForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // LimitExpression
@@ -684,7 +687,7 @@ namespace EMSModelComparer
                     LimitExpression lERev = reverseObject as LimitExpression;
                     LimitExpression lEForw = forwardObject as LimitExpression;
 
-                    ODUSVPropertyReflectInfo(lERev, lEForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(lERev, lEForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // PSRMeasOperand
@@ -694,7 +697,7 @@ namespace EMSModelComparer
                     PSRMeasOperand pSRMORev = reverseObject as PSRMeasOperand;
                     PSRMeasOperand pSRMOForw = forwardObject as PSRMeasOperand;
 
-                    ODUSVPropertyReflectInfo(pSRMORev, pSRMOForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(pSRMORev, pSRMOForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // PEStageSetpoint
@@ -704,7 +707,7 @@ namespace EMSModelComparer
                     PEStageSetpoint pESSRev = reverseObject as PEStageSetpoint;
                     PEStageSetpoint pESSForw = forwardObject as PEStageSetpoint;
 
-                    ODUSVPropertyReflectInfo(pESSRev, pESSForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(pESSRev, pESSForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 // WeatherStation
@@ -714,7 +717,7 @@ namespace EMSModelComparer
                     WeatherStation wSRev = reverseObject as WeatherStation;
                     WeatherStation wSForw = forwardObject as WeatherStation;
 
-                    ODUSVPropertyReflectInfo(wSRev, wSForw, exceptionPropertyHash, listOfDifferences);
+                    PropertyReflectInfo(wSRev, wSForw, exceptionPropertyHash, listOfDifferences);
                 }
 
                 #endregion
@@ -730,7 +733,7 @@ namespace EMSModelComparer
                     if (reversPESetpoint != null)
                     {
                         var forwardPESetpoint = forwardModelImage.GetObject<PEStageSetpoint>(uid);
-                        ODUSVPropertyReflectInfo(reversPESetpoint, forwardPESetpoint, exceptionPropertyHash, listOfDifferences);
+                        PropertyReflectInfo(reversPESetpoint, forwardPESetpoint, exceptionPropertyHash, listOfDifferences);
                     }
                 }
                 catch (Exception ex)
@@ -741,7 +744,7 @@ namespace EMSModelComparer
         }
 
         // Рефлексия. Метод перебирает все свойства класса
-        void ODUSVPropertyReflectInfo<T>(T objRev, T objForw, HashSet<string> exHash, List<string> listOfDiffs) where T : class
+        void PropertyReflectInfo<T>(T objRev, T objForw, HashSet<string> exHash, List<string> listOfDiffs) where T : class
         {
             // В переменную задается тип выбранного объекта
             Type t = typeof(T);
@@ -757,7 +760,7 @@ namespace EMSModelComparer
                     // Циклический проход по всем свойствам выбранного интерфейса
                     foreach (System.Reflection.PropertyInfo prop in interf.GetProperties())
                     {
-                        ODUSVCheckingIdentityOfProperty(exHash, listOfDiffs, objRev, objForw, prop);
+                        CheckingIdentityOfProperty(exHash, listOfDiffs, objRev, objForw, prop);
                     }
                 }
 
@@ -770,12 +773,12 @@ namespace EMSModelComparer
             // Циклический проход по всем свойствам выбранного класса
             foreach (System.Reflection.PropertyInfo prop in propNames)
             {
-                ODUSVCheckingIdentityOfProperty(exHash, listOfDiffs, objRev, objForw, prop);
+                CheckingIdentityOfProperty(exHash, listOfDiffs, objRev, objForw, prop);
             }
         }
 
         // Метод проверки идентичности свойства у двух объектов ИМ
-        void ODUSVCheckingIdentityOfProperty<T>(HashSet<string> _exHash, List<string> _listOfDiffs, T _objRev, T _objForw, System.Reflection.PropertyInfo _prop) where T : class
+        void CheckingIdentityOfProperty<T>(HashSet<string> _exHash, List<string> _listOfDiffs, T _objRev, T _objForw, System.Reflection.PropertyInfo _prop) where T : class
         {
             try
             {
@@ -812,8 +815,8 @@ namespace EMSModelComparer
                             if (stringOfPointsRev != stringOfPointsForw)
                                 _listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
                                         "' изменилось значение в свойстве '" + _prop.Name + "'. Было " + "points1" + ", стало " +
-                                        "points2" + ";" + ODUSVGetObjectName(_objRev) + ";" +
-                                        (_objRev as IdentifiedObject).ClassName() + ";" + ODUSVGetModelingAuthoritySet(_objRev));
+                                        "points2" + ";" + GetObjectName(_objRev) + ";" +
+                                        (_objRev as IdentifiedObject).ClassName() + ";" + GetModelingAuthoritySet(_objRev));
                         }
 
                         else if (_prop.PropertyType.ToString() == "Monitel.Mal.Context.CIM16.BranchGroupTerminal[]" && _objRev is Terminal)
@@ -846,8 +849,8 @@ namespace EMSModelComparer
 
                             if (reverseCode != forwardCode)
                                 _listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
-                                    "' изменилась связь " + _prop.Name + ";" + ODUSVGetObjectName(_objRev) + ";" +
-                                    (_objRev as IdentifiedObject).ClassName() + ";" + ODUSVGetModelingAuthoritySet(_objRev));
+                                    "' изменилась связь " + _prop.Name + ";" + GetObjectName(_objRev) + ";" +
+                                    (_objRev as IdentifiedObject).ClassName() + ";" + GetModelingAuthoritySet(_objRev));
                         }
 
                         else
@@ -856,12 +859,12 @@ namespace EMSModelComparer
                             if (_prop.GetValue(_objRev) == null && _prop.GetValue(_objForw) != null)
                                 _listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
                                 "' изменилась связь " + _prop.Name + ";" + (_objRev as IdentifiedObject).name + ";" + (_objRev as IdentifiedObject).ClassName() +
-                                ";" + ODUSVGetModelingAuthoritySet(_objRev));
+                                ";" + GetModelingAuthoritySet(_objRev));
 
                             if (_prop.GetValue(_objRev) != null && _prop.GetValue(_objForw) == null)
                                 _listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
-                                "' изменилась связь " + _prop.Name + ";" + ODUSVGetObjectName(_objRev) + ";" +
-                                (_objRev as IdentifiedObject).ClassName() + ";" + ODUSVGetModelingAuthoritySet(_objRev));
+                                "' изменилась связь " + _prop.Name + ";" + GetObjectName(_objRev) + ";" +
+                                (_objRev as IdentifiedObject).ClassName() + ";" + GetModelingAuthoritySet(_objRev));
 
                             if (_prop.GetValue(_objRev) != null && _prop.GetValue(_objForw) != null)
                             {
@@ -892,8 +895,8 @@ namespace EMSModelComparer
 
                                 if (reverseCode != forwardCode)
                                     _listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
-                                        "' изменилась связь " + _prop.Name + ";" + ODUSVGetObjectName(_objRev) + ";" +
-                                        (_objRev as IdentifiedObject).ClassName() + ";" + ODUSVGetModelingAuthoritySet(_objRev));
+                                        "' изменилась связь " + _prop.Name + ";" + GetObjectName(_objRev) + ";" +
+                                        (_objRev as IdentifiedObject).ClassName() + ";" + GetModelingAuthoritySet(_objRev));
                             }
                         }
                     }
@@ -912,7 +915,7 @@ namespace EMSModelComparer
                                 _listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
                                 "' изменилось значение в свойстве '" + _prop.Name + "'. Было 'не задан'" + ", стало " + _prop.GetValue(_objForw).ToString().Replace("\r\n", "").Replace("\n", "") +
                                 ";" + (_objRev as IdentifiedObject).name + ";" + (_objRev as IdentifiedObject).ClassName() + ";" +
-                                ODUSVGetModelingAuthoritySet(_objRev));
+                                GetModelingAuthoritySet(_objRev));
                             }
                             else if (_prop.GetValue(_objRev) != null && _prop.GetValue(_objForw) == null)
                             {
@@ -920,7 +923,7 @@ namespace EMSModelComparer
                                 _listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
                                 "' изменилось значение в свойстве '" + _prop.Name + "'. Было " + _prop.GetValue(_objRev).ToString().Replace("\r\n", "").Replace("\n", "") + ", стало 'не задан'" +
                                 ";" + (_objRev as IdentifiedObject).name + ";" + (_objRev as IdentifiedObject).ClassName() + ";" +
-                                ODUSVGetModelingAuthoritySet(_objRev));
+                                GetModelingAuthoritySet(_objRev));
                             }
                             else if (_prop.GetValue(_objRev) != null && _prop.GetValue(_objForw) != null)
                             {
@@ -930,12 +933,12 @@ namespace EMSModelComparer
                                         _listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
                                         "' изменилось значение в свойстве '" + _prop.Name + "'. Было " + _prop.GetValue(_objRev).ToString().Replace("\r\n", "").Replace("\n", "") + ", стало " +
                                         _prop.GetValue(_objForw).ToString().Replace("\r\n", "").Replace("\n", "") + ";" + (_objRev as IdentifiedObject).name + ";" + (_objRev as IdentifiedObject).ClassName() +
-                                        ";" + ODUSVGetModelingAuthoritySet(_objRev));
+                                        ";" + GetModelingAuthoritySet(_objRev));
                                     else
                                         _listOfDiffs.Add(Convert.ToString((_objRev as IMalObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
                                         "' изменилось значение в свойстве '" + _prop.Name + "'. Было " + _prop.GetValue(_objRev).ToString().Replace("\r\n", "").Replace("\n", "") + ", стало " +
-                                        _prop.GetValue(_objForw).ToString().Replace("\r\n", "").Replace("\n", "") + ";" + (_objRev as IMalObject).ClassName()/*name*/ + ";" + (_objRev as IMalObject).ClassName() +
-                                        ";" + ODUSVGetModelingAuthoritySet(_objRev));
+                                        _prop.GetValue(_objForw).ToString().Replace("\r\n", "").Replace("\n", "") + ";" + (_objRev as IMalObject).ClassName() + ";" + (_objRev as IMalObject).ClassName() +
+                                        ";" + GetModelingAuthoritySet(_objRev));
                                 }
                             }
                         }
@@ -950,33 +953,33 @@ namespace EMSModelComparer
                                 // Проверка на полюс
                                 if (valsForw is Terminal)
                                 {
-                                    line = ODUSVGetObjectName(valsForw);
+                                    line = GetObjectName(valsForw);
 
                                 }
                                 else if (valsForw is IdentifiedObject)
                                 {
-                                    line = ODUSVGetObjectName(valsForw);
+                                    line = GetObjectName(valsForw);
                                 }
-                                else line = ODUSVGetObjectName(valsForw);
+                                else line = GetObjectName(valsForw);
 
                                 _listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
                                 "' изменилось значение в свойстве '" + _prop.Name + "'. Было 'не задан'" + ", стало " + line +
-                                ";" + ODUSVGetObjectName(_objRev) + ";" + (_objRev as IdentifiedObject).ClassName() + ";" +
-                                ODUSVGetModelingAuthoritySet(_objRev));
+                                ";" + GetObjectName(_objRev) + ";" + (_objRev as IdentifiedObject).ClassName() + ";" +
+                                GetModelingAuthoritySet(_objRev));
                             }
                             else if (_prop.GetValue(_objRev) != null && _prop.GetValue(_objForw) == null)
                             {
                                 string line = "";
                                 // Проверка на полюс
                                 if (vals is Terminal)
-                                    line = ODUSVGetObjectName(vals);
+                                    line = GetObjectName(vals);
                                 else if (vals is IdentifiedObject)
-                                    line = ODUSVGetObjectName(vals);
-                                else line = ODUSVGetObjectName(vals);
+                                    line = GetObjectName(vals);
+                                else line = GetObjectName(vals);
                                 _listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
                                     "' изменилось значение в свойстве '" + _prop.Name + "'. Было " + line + ", стало 'не задан'" +
-                                    ";" + ODUSVGetObjectName(_objRev) + ";" + (_objRev as IdentifiedObject).ClassName() + ";"
-                                    + ODUSVGetModelingAuthoritySet(_objRev));
+                                    ";" + GetObjectName(_objRev) + ";" + (_objRev as IdentifiedObject).ClassName() + ";"
+                                    + GetModelingAuthoritySet(_objRev));
                             }
                             else if (_prop.GetValue(_objRev) != null && _prop.GetValue(_objForw) != null &&
                                         _prop.GetValue(_objRev).ToString() != _prop.GetValue(_objForw).ToString())
@@ -985,35 +988,34 @@ namespace EMSModelComparer
                                 string line2 = "";
                                 // Проверка на полюс
                                 if (vals is Terminal)
-                                    line1 = ODUSVGetObjectName(vals);
+                                    line1 = GetObjectName(vals);
                                 else if (vals is IdentifiedObject)
-                                    line1 = ODUSVGetObjectName(vals);
-                                else line1 = ODUSVGetObjectName(vals);
+                                    line1 = GetObjectName(vals);
+                                else line1 = GetObjectName(vals);
 
                                 if (valsForw is Terminal)
-                                    line2 = ODUSVGetObjectName(valsForw);
+                                    line2 = GetObjectName(valsForw);
                                 else if (valsForw is IdentifiedObject)
-                                    line2 = ODUSVGetObjectName(valsForw);
-                                else line2 = ODUSVGetObjectName(valsForw);
+                                    line2 = GetObjectName(valsForw);
+                                else line2 = GetObjectName(valsForw);
 
                                 _listOfDiffs.Add(Convert.ToString((_objRev as IdentifiedObject).Uid) + ";Изменение;У объекта класса '" + t.ToString() +
                                         "' изменилось значение в свойстве '" + _prop.Name + "'. Было " + line1 + ", стало " +
-                                        line2 + ";" + ODUSVGetObjectName(_objRev) + ";" + (_objRev as IdentifiedObject).ClassName() +
-                                        ";" + ODUSVGetModelingAuthoritySet(_objRev));
+                                        line2 + ";" + GetObjectName(_objRev) + ";" + (_objRev as IdentifiedObject).ClassName() +
+                                        ";" + GetModelingAuthoritySet(_objRev));
                             }
                         }
-                    }
-
+                    }                    
                 }
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.ToString() + "\n" + _prop.Name + "\n" + _prop.PropertyType.ToString() + "\n" + (_objRev as IMalObject).Uid);
+                logger.Write(Severity.Error, "Объект: " + (_objRev as IMalObject).Uid + "; Свойство: " + _prop.Name + "; Тип свойства: " + _prop.PropertyType.ToString() + "  " + e.ToString());
             }
         }
 
         // Метод определения имении объекта ИМ
-        string ODUSVGetObjectName<T>(/*IMalObject*/T inputObject) where T : class
+        string GetObjectName<T>(T inputObject) where T : class
         {
             string result = String.Empty;
             if (inputObject is IMalObject)
@@ -1045,7 +1047,7 @@ namespace EMSModelComparer
             return result;
         }
 
-        string ODUSVGetModelingAuthoritySet<T>(T inputObject)
+        string GetModelingAuthoritySet<T>(T inputObject)
         {
             string result = String.Empty;
             IdentifiedObject idObj = null;
@@ -1060,10 +1062,22 @@ namespace EMSModelComparer
                 if (idObj.ModelingAuthoritySet != null)
                     result = idObj.ModelingAuthoritySet.name;
                 else
-                    result = ODUSVGetModelingAuthoritySet(idObj.ParentObject);
+                    result = GetModelingAuthoritySet(idObj.ParentObject);
             }
 
             return result;
         }
     }
+
+    internal enum EmsSubsystem
+    {
+        [Description("МТН")]
+        MTN,
+        [Description("КПОС")]
+        KPOS,
+        [Description("МУН")]
+        MUN
+    }
+
+
 }

@@ -8,61 +8,65 @@ using Monitel.Mal;
 using Monitel.DataContext.Tools.ModelExtensions;
 using Monitel.Mal.Context.CIM16;
 using Monitel.Mal.Context.CIM16.Ext.EMS;
-using Monitel.UI.Infrastructure.Services;
 
 namespace EMSModelComparer
 {
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, IView
     {
-		Window MainWindow;
+		//Window MainWindow;
 		Window mainWindow;
 		System.Windows.Controls.ScrollViewer scroll;
-		System.Windows.Controls.StackPanel mainStackPanel;
+		//System.Windows.Controls.StackPanel mainStackPanel;
 		/*FileHandler fileHandler;
 		FolderWithAppFilesHandler programFolder;*/
 
-		System.Windows.Controls.Button actionButton;
-		System.Windows.Controls.TextBox textBoxServerName;
-		System.Windows.Controls.TextBox textBoxReverseModelContext;
-		System.Windows.Controls.TextBox textBoxReverseModelNum;
-		System.Windows.Controls.TextBox textBoxForwardModelContext;
-		System.Windows.Controls.TextBox textBoxForwardModelNum;
-		System.Windows.Controls.ComboBox ComboBoxOrgRole;
-		System.Windows.Controls.TextBox textBoxOrganisation;
+		//System.Windows.Controls.Button actionButton;
+		//System.Windows.Controls.TextBox textBoxServerName;
+		//System.Windows.Controls.TextBox textBoxReverseModelContext;
+		//System.Windows.Controls.TextBox textBoxReverseModelNum;
+		//System.Windows.Controls.TextBox textBoxForwardModelContext;
+		//System.Windows.Controls.TextBox textBoxForwardModelNum;
+		//System.Windows.Controls.ComboBox ComboBoxOrgRole;
+		//System.Windows.Controls.TextBox textBoxOrganisation;
 
-		internal string TextBoxServerName
+		public string ServerName
 		{
 			get { return textBoxServerName.Text; }
 		}
 
-		internal string TextBoxReverseModelContext
+		public string ReverseModelContext
 		{
 			get { return textBoxReverseModelContext.Text; }
 		}
-		internal string TextBoxReverseModelNum
+		public string ReverseModelId
 		{
-			get { return textBoxReverseModelNum.Text; }
+			get { return textBoxReverseModelId.Text; }
 		}
-		internal string TextBoxForwardModelContext
+		public string ForwardModelContext
 		{
 			get { return textBoxForwardModelContext.Text; }
 		}
-		internal string TextBoxForwardModelNum
+		public string ForwardModelId
 		{
-			get { return textBoxForwardModelNum.Text; }
+			get { return textBoxForwardModelId.Text; }
 		}
 
-		internal string TextBoxOrganisation
+		public string OrganisationUid
 		{
 			get { return textBoxOrganisation.Text; }
 			private set { }
 		}
-		internal int ComboBoxOrgRoleIndex
+		public int OrganisationRoleIndex
 		{
-			get { return ComboBoxOrgRole.SelectedIndex; }
+			get { return comboBoxOrganisationRole.SelectedIndex; }
+		}
+
+		public bool IsFileOpen
+        {
+			get { return (bool)checkBoxIsFileOpen.IsChecked; }
 		}
 
 		/*ModelImage reverseModelImage;
@@ -78,26 +82,30 @@ namespace EMSModelComparer
 		System.IO.StreamWriter swDiff;
 		System.IO.StreamReader srExcep;*/
 
-		IServiceManager Services;
+		//IServiceManager Services;
 
-		Guid OrgUid;
+		//Guid OrganisationUid;
 
 		IModel model;
 		IController controller;
 
-		internal MainWindow(Window MainWindow, IServiceManager Services, IModel model, IController controller)
+		internal MainWindow(/*Window MainWindow, IServiceManager Services,*/ IModel model, IController controller)
 		{            
             InitializeComponent();
 
-			this.MainWindow = MainWindow;
-			this.Services = Services;
+			//this.MainWindow = MainWindow;
+			//this.Services = Services;
 			this.model = model;
 			this.controller = controller;
+			GetConfiguration();
+			//Show();
 		}
 
-		internal void InitializeWindow()
+		//TODO: Метод не используется. Необходимо удалить 
+		public void InitializeWindow()
 		{
-			//Создание главного окна, scroll и StackPanel
+            #region
+            /*//Создание главного окна, scroll и StackPanel
 			mainWindow = new Window();
 			scroll = new System.Windows.Controls.ScrollViewer();
 			mainStackPanel = new System.Windows.Controls.StackPanel();
@@ -304,7 +312,7 @@ namespace EMSModelComparer
 			textBoxServerName.IsEnabled = true;
 			textBoxServerName.Width = 200;
 			textBoxServerName.Margin = new Thickness(5, 5, 5, 5);
-			textBoxServerName.Text = /*fileHandler.OdbServerName*//*_odbServerName*/ null;
+			textBoxServerName.Text = null;
 
 			// Grid для настроки контекста исходной модели
 			var reverseModelContextGrid = new System.Windows.Controls.Grid();
@@ -331,7 +339,7 @@ namespace EMSModelComparer
 			textBoxReverseModelContext.IsEnabled = true;
 			textBoxReverseModelContext.Width = 200;
 			textBoxReverseModelContext.Margin = new Thickness(5, 5, 5, 5);
-			textBoxReverseModelContext.Text = /*fileHandler.ReverseOdbInstanseName*/ /*reverseOdbInstanseName*/ null;
+			textBoxReverseModelContext.Text = null;
 
 			// Grid для настроки номера исходной модели
 			var reverseModelNumGrid = new System.Windows.Controls.Grid();
@@ -358,7 +366,7 @@ namespace EMSModelComparer
 			textBoxReverseModelNum.IsEnabled = true;
 			textBoxReverseModelNum.Width = 200;
 			textBoxReverseModelNum.Margin = new Thickness(5, 5, 5, 5);
-			textBoxReverseModelNum.Text = /*fileHandler.ReverseOdbModelVersionId*//*reverseOdbModelVersionId*/ null;
+			textBoxReverseModelNum.Text = null;
 
 			// Grid для настроки контекста сравниваемой модели
 			var forwardModelContextGrid = new System.Windows.Controls.Grid();
@@ -385,7 +393,7 @@ namespace EMSModelComparer
 			textBoxForwardModelContext.IsEnabled = true;
 			textBoxForwardModelContext.Width = 200;
 			textBoxForwardModelContext.Margin = new Thickness(5, 5, 5, 5);
-			textBoxForwardModelContext.Text = /*fileHandler.ForwardOdbInstanseName*//*forwardOdbInstanseName*/ null;
+			textBoxForwardModelContext.Text = null;
 
 			// Grid для настроки номера сравниваемой модели
 			var forwardModelNumGrid = new System.Windows.Controls.Grid();
@@ -412,7 +420,7 @@ namespace EMSModelComparer
 			textBoxForwardModelNum.IsEnabled = true;
 			textBoxForwardModelNum.Width = 200;
 			textBoxForwardModelNum.Margin = new Thickness(5, 5, 5, 5);
-			textBoxForwardModelNum.Text = /*fileHandler.ForwardOdbModelVersionId*//*forwardOdbModelVersionId*/ null;
+			textBoxForwardModelNum.Text = null;
 
 			mainStackPanel.Children.Add(grBoxComparedModels);
 
@@ -474,26 +482,67 @@ namespace EMSModelComparer
 
 			stackPanelComparedModels.Children.Add(forwardModelNumGrid);
 
-			grBoxComparedModels.Content = stackPanelComparedModels;
+			grBoxComparedModels.Content = stackPanelComparedModels;*/
 
-			// Button для выполнения действия
+            /*// Button для выполнения действия
 			actionButton = new System.Windows.Controls.Button();
 			actionButton.IsEnabled = true;
 			actionButton.Height = 30;
 			actionButton.Content = "Сравнить модели";
 
-			mainStackPanel.Children.Add(actionButton);
+			mainStackPanel.Children.Add(actionButton);*/
 
-			/*// UID текущей организации
+            /*// UID текущей организации
 			OrgUid = Services.License.OrganizationUid;
 			textBoxOrganisation.Text = OrgUid.ToString();*/
+            #endregion
 
-			InitializeDevExpress();
+            //InitializeDevExpress();
 
-			GetConfiguration();
+            //GetConfiguration();
 		}
 
-		private void InitializeDevExpress()
+		
+
+		internal void GetConfiguration()
+		{
+			textBoxServerName.Text = model.OdbServerName;
+			textBoxReverseModelContext.Text = model.ReverseOdbInstanseName;
+			textBoxReverseModelId.Text = model.ReverseOdbModelVersionId;
+			textBoxForwardModelContext.Text = model.ForwardOdbInstanseName;
+			textBoxForwardModelId.Text = model.ForwardOdbModelVersionId;
+			// UID текущей организации
+			//OrganisationUid = Services.License.OrganizationUid;
+			textBoxOrganisation.Text = model.OrganisationUid.ToString();
+		}
+
+
+		private void Start()
+		{
+			
+		}
+
+		private void CheckInputData()
+		{
+			if (textBoxServerName.Text == String.Empty ||
+				textBoxReverseModelContext.Text == String.Empty ||
+				textBoxReverseModelId.Text == String.Empty ||
+				textBoxForwardModelContext.Text == String.Empty ||
+				textBoxForwardModelId.Text == String.Empty ||
+				textBoxOrganisation.Text == String.Empty)
+			{
+				throw new Exception("Введены не все данные для работы скрипта");
+			}
+		}
+
+        private void actionButton_Click(object sender, RoutedEventArgs e)
+        {
+			CheckInputData();
+			// Запуск скрипта
+			controller.StartComparison();
+        }
+
+        /*private void InitializeDevExpress()
 		{
 			dynamic dockLayoutManager = (MainWindow.Content as System.Windows.Controls.Grid).Children[2];
 			var dockingAssemName = "DevExpress.Xpf.Docking.v21.2, Version=21.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a";
@@ -576,213 +625,6 @@ namespace EMSModelComparer
 				properties.Parent.SelectedTabIndex = properties.Parent.Items.Count - 1;
 			}
 
-		}
-
-		internal void GetConfiguration()
-		{
-			textBoxServerName.Text = model.OdbServerName;
-			textBoxReverseModelContext.Text = model.ReverseOdbInstanseName;
-			textBoxReverseModelNum.Text = model.ReverseOdbModelVersionId;
-			textBoxForwardModelContext.Text = model.ForwardOdbInstanseName;
-			textBoxForwardModelNum.Text = model.ForwardOdbModelVersionId;
-			// UID текущей организации
-			OrgUid = Services.License.OrganizationUid;
-			textBoxOrganisation.Text = OrgUid.ToString();
-		}
-
-
-		internal void Start()
-		{
-
-			CheckInputData();
-			// Запуск скрипта
-			actionButton.Click += (sender, a) => {
-
-
-				controller.StartComparison();
-
-				try
-				{
-					/*// Чтение данных
-					fileHandler.OdbServerName = textBoxServerName.Text;
-					fileHandler.ReverseOdbInstanseName = textBoxReverseModelContext.Text;
-					fileHandler.ReverseOdbModelVersionId = textBoxReverseModelNum.Text;
-					fileHandler.ForwardOdbInstanseName = textBoxForwardModelContext.Text;
-					fileHandler.ForwardOdbModelVersionId = textBoxForwardModelNum.Text;
-
-					if (fileHandler.OdbServerName == String.Empty || fileHandler.ReverseOdbInstanseName == String.Empty || fileHandler.ReverseOdbModelVersionId == String.Empty ||
-					fileHandler.ForwardOdbInstanseName == String.Empty || fileHandler.ForwardOdbModelVersionId == String.Empty)
-					{
-						throw new Exception("Введены не все данные для работы скрипта");
-					}*/
-
-
-					/*// Запись данных в config файл
-					//string configFilePath = pathToScriptFiles + @"\EMSMCconfig.csv";
-					System.IO.StreamWriter swConfig = new System.IO.StreamWriter(fileHandler.ConfigFilePath, false, System.Text.Encoding.Default);
-					swConfig.WriteLine("OdbServerName;" + fileHandler.OdbServerName);
-					swConfig.WriteLine("ReverseOdbInstanseName;" + fileHandler.ReverseOdbInstanseName);
-					swConfig.WriteLine("ReverseOdbModelVersionId;" + fileHandler.ReverseOdbModelVersionId);
-					swConfig.WriteLine("ForwardOdbInstanseName;" + fileHandler.ForwardOdbInstanseName);
-					swConfig.WriteLine("ForwardOdbModelVersionId;" + fileHandler.ForwardOdbModelVersionId);
-					swConfig.Close();*/
-
-					/*// Подключение к исходной модели
-					Monitel.Mal.Providers.MalContextParams reverseContext = new Monitel.Mal.Providers.MalContextParams()
-					{
-						OdbServerName = fileHandler.OdbServerName,
-						OdbInstanseName = fileHandler.ReverseOdbInstanseName,
-						OdbModelVersionId = Convert.ToInt32(fileHandler.ReverseOdbModelVersionId),
-					};
-					Monitel.Mal.Providers.Mal.MalProvider ReverseDataProvider = new Monitel.Mal.Providers.Mal.MalProvider(reverseContext, Monitel.Mal.Providers.MalContextMode.Open, "test", -1);
-					reverseModelImage = new ModelImage(ReverseDataProvider, true);*/
-
-					/*// Подключение к сравниваемой модели
-					Monitel.Mal.Providers.MalContextParams forwardContext = new Monitel.Mal.Providers.MalContextParams()
-					{
-						OdbServerName = fileHandler.OdbServerName,
-						OdbInstanseName = fileHandler.ForwardOdbInstanseName,
-						OdbModelVersionId = Convert.ToInt32(fileHandler.ForwardOdbModelVersionId),
-					};
-					Monitel.Mal.Providers.Mal.MalProvider ForwardDataProvider = new Monitel.Mal.Providers.Mal.MalProvider(forwardContext, Monitel.Mal.Providers.MalContextMode.Open, "test", -1);
-					forwardModelImage = new ModelImage(ForwardDataProvider, true);*/
-
-					/*// Путь к реверс файлу
-					string reversePath = programFolder.PathToScriptFiles + @"\ReverseHash.csv";
-					System.IO.StreamWriter swReverse = new System.IO.StreamWriter(reversePath, false, System.Text.Encoding.Default);
-
-					// Путь к форвард файлу
-					string forwardPath = programFolder.PathToScriptFiles + @"\ForwardHash.csv";
-					System.IO.StreamWriter swForward = new System.IO.StreamWriter(forwardPath, false, System.Text.Encoding.Default);
-
-					// Путь к главному файлу с изменениями
-					string differencePath = programFolder.PathToScriptFiles + @"\Перечень изменений.csv";
-					System.IO.StreamWriter swDiff = new System.IO.StreamWriter(differencePath, false, System.Text.Encoding.Default);*/
-
-					/*// Путь к файлу со свойствами, исключаемыми из проверки
-					string exceptionPropertyListPath = programFolder.PathToScriptFiles + @"\ExceptionPropertyList.csv";
-					System.IO.StreamReader srExcep = new System.IO.StreamReader(exceptionPropertyListPath, System.Text.Encoding.Default, false);*/
-
-					/*HashSet<Guid> reverseObjectsUids = new HashSet<Guid>(); // Перечень объектов контроля из старой модели
-					HashSet<Guid> forwardObjectsUids = new HashSet<Guid>(); // Перечень объектов контроля из новой модели
-
-
-
-					exceptionPropertyHash = new HashSet<string>(); // Перечень свойст, которые исключаются из проверки*/
-
-					/*// Поиск роли организации, по которой выполняется сравнение моделей
-					Guid roleTypeUid;
-					if (ComboBoxOrgRole.SelectedIndex == 0)
-					{
-						roleTypeUid = new Guid("1000161E-0000-0000-C000-0000006D746C"); // Контроль в МТН
-						ODUSVCreatingListOfComparedObjectsMTN(reverseObjectsUids, ODUSVFindOrganisationRole(roleTypeUid, OrgUid), reverseModelImage);
-						ODUSVCreatingListOfComparedObjectsMTN(forwardObjectsUids, ODUSVFindOrganisationRole(roleTypeUid, OrgUid), forwardModelImage);
-					}
-					else if (ComboBoxOrgRole.SelectedIndex == 1)
-					{
-						roleTypeUid = new Guid("10001672-0000-0000-C000-0000006D746C"); // Контроль в КПОС
-						MessageBox.Show("Проверка изменений по объектам, контролируемым в КПОС, ещё не разработана");
-					}
-					else if (ComboBoxOrgRole.SelectedIndex == 2)
-					{
-						roleTypeUid = new Guid("10001669-0000-0000-C000-0000006D746C"); // Контроль в МУН
-						MessageBox.Show("Проверка изменений по объектам, контролируемым в МУН, ещё не разработана");
-					}*/
-
-					/*// Запись списка объектов из проверяемых моделей в соответствующие файлы
-					foreach (Guid uid in reverseObjectsUids)
-					{
-						swReverse.WriteLine(uid);
-					}
-					foreach (Guid uid in forwardObjectsUids)
-					{
-						swForward.WriteLine(uid);
-					}
-
-					// Составление списка со связями, исключенными из проверки
-					string line;
-					while ((line = srExcep.ReadLine()) != null)
-					{
-						exceptionPropertyHash.Add(line);
-					}*/
-
-					/*//закрыть текстовый файл для сохранения данных
-					swReverse.Close();
-					swForward.Close();
-					srExcep.Close();*/
-
-
-					/*MessageBox.Show("В списке исключений: " + exceptionPropertyHash.Count());
-					MessageBox.Show("Добавлено reverse объектов: " + reverseObjectsUids.Count());
-					MessageBox.Show("Добавлено forward объектов: " + forwardObjectsUids.Count());*/
-
-					/*// Далее составляется список изменений в моделях
-					listOfDifferences.Add("UID;Действие;Текст;Имя объекта;Класс объекта;Ответственный за моделирование");   // Шапка таблицы*/
-
-					/*HashSet<Guid> deletedObjectsUids = new HashSet<Guid>(reverseObjectsUids);   // Перечень объектов удаленных из модели
-					deletedObjectsUids.ExceptWith(forwardObjectsUids);
-
-					MessageBox.Show("Удаленных объектов: " + deletedObjectsUids.Count());
-
-					foreach (Guid uid in deletedObjectsUids)
-					{
-						ODUSVWriteAddedOrDeletedObject(uid, reverseModelImage, "deleted");
-					}
-
-					HashSet<Guid> addedObjectsUids = new HashSet<Guid>(forwardObjectsUids); // Перечень объектов добавленных в модель
-					addedObjectsUids.ExceptWith(reverseObjectsUids);
-
-					MessageBox.Show("Добавленных объектов: " + addedObjectsUids.Count());
-
-					foreach (Guid uid in addedObjectsUids)
-					{
-						ODUSVWriteAddedOrDeletedObject(uid, forwardModelImage, "added");
-					}
-
-					// Добавление в список измененных объектов
-					HashSet<Guid> otherMTNUids = new HashSet<Guid>(reverseObjectsUids); // Перечень объектов добавленных в модель
-					otherMTNUids.IntersectWith(forwardObjectsUids);
-
-					MessageBox.Show("Оставшихся объектов: " + otherMTNUids.Count());*/
-
-					/*// Составление списка изменений
-					foreach (Guid uid in otherMTNUids)
-					{
-						ODUSVFindChanges(uid);
-					}
-
-
-					// Заполнение файла с измененяим
-					foreach (string text in listOfDifferences)
-					{
-						swDiff.WriteLine(text);
-					}
-
-					swDiff.Close();
-					MessageBox.Show("Скрипт выполнен успешно");*/
-				}
-				catch (Exception ex)
-				{
-					MessageBox.Show(ex.Message + "\n" + ex.StackTrace);
-					/*swReverse.Close();
-					swForward.Close();
-					swDiff.Close();
-					srExcep.Close();*/
-				}
-			};
-		}
-
-		private void CheckInputData()
-		{
-			if (textBoxServerName.Text == String.Empty ||
-				textBoxReverseModelContext.Text == String.Empty ||
-				textBoxReverseModelNum.Text == String.Empty ||
-				textBoxForwardModelContext.Text == String.Empty ||
-				textBoxForwardModelNum.Text == String.Empty ||
-				textBoxOrganisation.Text == String.Empty)
-			{
-				throw new Exception("Введены не все данные для работы скрипта");
-			}
-		}
-	}
+		}*/
+    }
 }

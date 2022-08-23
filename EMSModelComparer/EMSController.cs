@@ -11,13 +11,12 @@ namespace EMSModelComparer
         IModel model;
         MainWindow mainWindow;
 
-        internal EMSController(Window MainWindow, IServiceManager Services, IModel model)
+        internal EMSController(IModel model)
         {
             this.model = model;
 
-            mainWindow = new MainWindow(MainWindow, Services, model, this);
-            mainWindow.InitializeWindow();
-            mainWindow.Start();
+            mainWindow = new MainWindow(model, this);
+            mainWindow.ShowDialog();
         }
 
         public void StartComparison()
@@ -28,13 +27,21 @@ namespace EMSModelComparer
 
         private void SetModelConfiguration()
         {
-            model.OdbServerName = mainWindow.TextBoxServerName;
-            model.ReverseOdbInstanseName = mainWindow.TextBoxReverseModelContext;
-            model.ReverseOdbModelVersionId = mainWindow.TextBoxReverseModelNum;
-            model.ForwardOdbInstanseName = mainWindow.TextBoxForwardModelContext;
-            model.ForwardOdbModelVersionId = mainWindow.TextBoxForwardModelNum;
-            model.OrganisationRoleIndex = mainWindow.ComboBoxOrgRoleIndex;
-            model.OrganisationUID = new Guid(mainWindow.TextBoxOrganisation);
+            try
+            {
+                model.OdbServerName = mainWindow.ServerName;
+                model.ReverseOdbInstanseName = mainWindow.ReverseModelContext;
+                model.ReverseOdbModelVersionId = mainWindow.ReverseModelId;
+                model.ForwardOdbInstanseName = mainWindow.ForwardModelContext;
+                model.ForwardOdbModelVersionId = mainWindow.ForwardModelId;
+                model.OrganisationRoleIndex = mainWindow.OrganisationRoleIndex;
+                model.OrganisationUid = new Guid(mainWindow.OrganisationUid);
+                model.IsFileOpen = mainWindow.IsFileOpen;
+            }
+            catch
+            { 
+                throw new Exception("Введены некорректные данные");
+            }
         }
     }
 }
